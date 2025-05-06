@@ -1,0 +1,44 @@
+# Archivos de desarrollo
+.vs/
+.vscode/
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Archivos de configuración local
+appsettings.Development.json
+appsettings.Local.json
+
+# Archivos de prueba
+**/*.Tests/
+**/*.Test/
+
+# Archivos de control de versiones
+.git/
+.gitignore
+
+# Archivos de publicación
+**/publish/
+
+# Archivos temporales
+*.swp
+*.swo
+*~
+
+# Archivos de base de datos
+*.mdf
+*.ldf
+*.sdf
+
+# Archivos de log
+*.log
+
+# Archivos de migración
+Migrations/
+
+# Archivos de cliente
+ClientApp/node_modules/
+ClientApp/dist/ 
