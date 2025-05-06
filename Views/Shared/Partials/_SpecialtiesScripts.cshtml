@@ -1,0 +1,131 @@
+﻿<script>
+    let specialtyDataTable;
+
+    $(document).ready(function () {
+        specialtyDataTable = $('#specialtyTable').DataTable({
+            language: {
+                search: "Buscar:",
+                lengthMenu: "Mostrar _MENU_ registros",
+                zeroRecords: "No se encontraron especialidades",
+                info: "Mostrando _START_ a _END_ de _TOTAL_ especialidades",
+                infoEmpty: "Sin especialidades disponibles",
+                infoFiltered: "(filtrado de _MAX_ especialidades)"
+            }
+        });
+    });
+
+    window.createSpecialty = function () {
+        const name = $('#newSpecialtyName').val().trim();
+        const description = $('#newSpecialtyDescription').val().trim();
+
+        if (!name) {
+            Swal.fire('Advertencia', 'El nombre no puede estar vacío.', 'warning');
+            return;
+        }
+
+        const specialty = { name, description };
+
+        $.ajax({
+            url: '/Specialty/Create',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(specialty)
+        })
+        .done((response) => {
+            Swal.fire('¡Éxito!', 'La especialidad fue creada correctamente.', 'success');
+            $('#newSpecialtyName').val('');
+            $('#newSpecialtyDescription').val('');
+
+            const newRow = `
+                <tr data-id="${response.id}">
+                    <td>
+                        <span class="specialty-name-text">${response.name}</span>
+                        <input type="text" class="form-control d-none specialty-name-input" value="${response.name}" />
+                    </td>
+                    <td>
+                        <span class="specialty-description-text">${response.description || ''}</span>
+                        <textarea class="form-control d-none specialty-description-input">${response.description || ''}</textarea>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-primary btn-edit-specialty">Editar</button>
+                        <button class="btn btn-sm btn-success d-none btn-save-specialty">Guardar</button>
+                        <button class="btn btn-sm btn-danger btn-delete-specialty">Eliminar</button>
+                    </td>
+                </tr>
+            `;
+
+            const rowNode = $(newRow);
+            specialtyDataTable.row.add(rowNode).draw();
+        })
+        .fail(() => Swal.fire('Error', 'Error al crear la especialidad.', 'error'));
+    };
+
+    $('#specialtyTable').on('click', '.btn-edit-specialty', function () {
+        const row = $(this).closest('tr');
+        row.find('.specialty-name-text, .specialty-description-text').addClass('d-none');
+        row.find('.specialty-name-input, .specialty-description-input').removeClass('d-none');
+        row.find('.btn-edit-specialty').addClass('d-none');
+        row.find('.btn-save-specialty').removeClass('d-none');
+    });
+
+    $('#specialtyTable').on('click', '.btn-save-specialty', function () {
+        const row = $(this).closest('tr');
+
+        const specialty = {
+            Id: row.data('id'),
+            Name: row.find('.specialty-name-input').val().trim(),
+            Description: row.find('.specialty-description-input').val().trim()
+        };
+
+        if (!specialty.Name) {
+            Swal.fire('Advertencia', 'El nombre no puede estar vacío.', 'warning');
+            return;
+        }
+
+        $.ajax({
+            url: '/Specialty/Edit',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(specialty)
+        })
+        .done(() => {
+            row.find('.specialty-name-text').text(specialty.Name).removeClass('d-none');
+            row.find('.specialty-description-text').text(specialty.Description).removeClass('d-none');
+            row.find('.specialty-name-input, .specialty-description-input').addClass('d-none');
+            row.find('.btn-edit-specialty').removeClass('d-none');
+            row.find('.btn-save-specialty').addClass('d-none');
+            Swal.fire('¡Actualizado!', 'La especialidad fue actualizada correctamente.', 'success');
+        })
+        .fail(() => Swal.fire('Error', 'Error al actualizar la especialidad.', 'error'));
+    });
+
+    $('#specialtyTable').on('click', '.btn-delete-specialty', function () {
+        const row = $(this).closest('tr');
+        const id = row.data('id');
+
+        Swal.fire({
+            title: '¿Eliminar esta especialidad?',
+            text: "Esta acción no se puede deshacer.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/Specialty/Delete',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ id })
+                })
+                .done(() => {
+                    specialtyDataTable.row(row).remove().draw();
+                    Swal.fire('Eliminado', 'La especialidad fue eliminada correctamente.', 'success');
+                })
+                .fail(() => Swal.fire('Error', 'Error al eliminar la especialidad.', 'error'));
+            }
+        });
+    });
+</script>

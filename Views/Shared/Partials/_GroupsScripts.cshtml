@@ -1,0 +1,125 @@
+﻿
+    <script>
+       let groupDataTable;
+
+    $(document).ready(function () {
+        groupDataTable = $('#groupTable').DataTable({
+            language: {
+                search: "Buscar:",
+                lengthMenu: "Mostrar _MENU_ registros",
+                zeroRecords: "No se encontraron grupos",
+                info: "Mostrando _START_ a _END_ de _TOTAL_ grupos",
+                infoEmpty: "Sin grupos disponibles",
+                infoFiltered: "(filtrado de _MAX_ grupos)"
+            }
+        });
+    });
+
+    window.createGroup = function () {
+        const name = $('#newGroupName').val().trim();
+        const grade = $('#newGroupGrade').val().trim();
+
+        if (!name) {
+            Swal.fire('Advertencia', 'El nombre no puede estar vacío.', 'warning');
+            return;
+        }
+
+        $.post('/Group/Create', { name, grade })
+            .done(function (newGroup) {
+                Swal.fire('¡Éxito!', 'El grupo fue creado correctamente.', 'success');
+                $('#newGroupName').val('');
+                $('#newGroupGrade').val('');
+
+                const newRow = $(`
+                    <tr data-id="${newGroup.id}">
+                        <td>
+                            <span class="group-name-text">${newGroup.name}</span>
+                            <input type="text" class="form-control d-none group-name-input" value="${newGroup.name}" />
+                        </td>
+                        <td>
+                            <span class="group-grade-text">${newGroup.grade ?? ''}</span>
+                            <input type="text" class="form-control d-none group-grade-input" value="${newGroup.grade ?? ''}" />
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-primary btn-edit-group">Editar</button>
+                            <button class="btn btn-sm btn-success d-none btn-save-group">Guardar</button>
+                            <button class="btn btn-sm btn-danger btn-delete-group">Eliminar</button>
+                        </td>
+                    </tr>
+                `);
+
+             groupDataTable.row.add(newRow.get(0)).draw();
+                })
+            .fail(() => Swal.fire('Error', 'Error al crear el grupo.', 'error'));
+    };
+
+
+        $('#groupTable').on('click', '.btn-edit-group', function () {
+            const row = $(this).closest('tr');
+            row.find('.group-name-text, .group-grade-text').addClass('d-none');
+            row.find('.group-name-input, .group-grade-input').removeClass('d-none');
+            row.find('.btn-edit-group').addClass('d-none');
+            row.find('.btn-save-group').removeClass('d-none');
+        });
+
+        $('#groupTable').on('click', '.btn-save-group', function () {
+            const row = $(this).closest('tr');
+
+            const group = {
+                Id: row.data('id'),
+                Name: row.find('.group-name-input').val().trim(),
+                Grade: row.find('.group-grade-input').val().trim()
+            };
+
+            if (!group.Name) {
+                Swal.fire('Advertencia', 'El nombre no puede estar vacío.', 'warning');
+                return;
+            }
+
+            $.ajax({
+                url: '/Group/Edit',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(group)
+            })
+            .done(() => {
+                row.find('.group-name-text').text(group.Name).removeClass('d-none');
+                row.find('.group-grade-text').text(group.Grade).removeClass('d-none');
+                row.find('.group-name-input, .group-grade-input').addClass('d-none');
+                row.find('.btn-edit-group').removeClass('d-none');
+                row.find('.btn-save-group').addClass('d-none');
+
+                Swal.fire('¡Actualizado!', 'El grupo fue actualizado correctamente.', 'success');
+            })
+            .fail(() => Swal.fire('Error', 'Error al actualizar el grupo.', 'error'));
+        });
+
+    $('#groupTable').on('click', '.btn-delete-group', function () {
+        const row = $(this).closest('tr');
+        const id = row.data('id');
+
+        Swal.fire({
+            title: '¿Eliminar este grupo?',
+            text: "Esta acción no se puede deshacer.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Enviamos como formulario (x-www-form-urlencoded)
+                $.post('/Group/Delete', { id: id })
+                    .done(() => {
+                        row.remove();
+                        Swal.fire('Eliminado', 'El grupo fue eliminado correctamente.', 'success');
+                    })
+                    .fail(() => Swal.fire('Error', 'Error al eliminar el grupo.', 'error'));
+            }
+        });
+    });
+
+
+</script>
+

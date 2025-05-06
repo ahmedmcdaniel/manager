@@ -1,0 +1,802 @@
+@model SchoolManager.ViewModels.DirectorViewModel
+@{
+    ViewBag.Title = "Portal del Director";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var selectedTodos = string.IsNullOrEmpty(Model.TrimestreSeleccionado) ? "selected=\"selected\"" : "";
+}
+<style>
+    :root {
+        --primary-color: #2563eb;
+        --secondary-color: #475569;
+        --success-color: #22c55e;
+        --warning-color: #f59e0b;
+        --danger-color: #ef4444;
+        --light-bg: #f8fafc;
+        --border-color: #e2e8f0;
+    }
+    body { background-color: var(--light-bg); }
+    .director-portal { padding: 1.5rem 0; }
+    .portal-header {
+        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    .portal-header h3 { margin: 0; font-size: 1.75rem; font-weight: 600; }
+    .portal-header small { opacity: 0.9; font-size: 1rem; }
+    .card {
+        border: none !important;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+        background: white;
+    }
+    .card-header {
+        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+        color: white;
+        border-bottom: 1px solid var(--border-color);
+        padding: 1.25rem;
+        border-radius: 1rem 1rem 0 0 !important;
+    }
+    .card-header, .card-header * { color: #fff !important; }
+    .card-body { padding: 1.5rem; }
+    .table { border-radius: 0.5rem; overflow: hidden; margin-bottom: 0; }
+    .table thead th {
+        background-color: var(--light-bg);
+        border-bottom: 2px solid var(--border-color);
+        padding: 1rem;
+        font-weight: 600;
+        color: var(--secondary-color);
+        text-align: center;
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+    .table tbody td { padding: 1rem; vertical-align: middle; text-align: center; }
+    .alert { border-radius: 0.5rem; font-size: 1rem; }
+    .alert-warning { background-color: #fef3c7; color: #b45309; border: none; }
+    .alert-success { background-color: #dcfce7; color: #15803d; border: none; }
+    .alert-info { background-color: #f0f9ff; color: #2563eb; border: none; }
+    .alert-danger, .alert-critico { background-color: #fee2e2; color: #b91c1c; border: none; }
+    .stat-card {
+        background: #f8fafc;
+        border-radius: 1rem;
+        box-shadow: 0 2px 8px 0 rgba(37,99,235,0.04);
+        min-height: 110px;
+        transition: box-shadow 0.2s;
+    }
+    .stat-card:hover { box-shadow: 0 4px 16px 0 rgba(37,99,235,0.10); }
+    .icon-circle {
+        width: 54px; height: 54px;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 50%;
+    }
+    .bg-blue-soft { background: #e8f0fe; }
+    .bg-green-soft { background: #e6f9ed; }
+    .bg-red-soft { background: #fdeaea; }
+    .text-blue { color: #2563eb !important; }
+    .text-green { color: #22c55e !important; }
+    .text-red { color: #ef4444 !important; }
+    .stat-title { font-size: 1.05rem; font-weight: 500; margin-bottom: 0.2rem; }
+    .stat-value { font-size: 2rem; font-weight: 700; line-height: 1; }
+    .stat-percent { font-size: 1rem; font-weight: 500; margin-top: 0.1rem; }
+    .stat-card { border: none; }
+    .stat-card .stat-value, .stat-card .stat-title { margin-bottom: 0; }
+    .stat-card .stat-percent { margin-bottom: 0; }
+    .stat-card .icon-circle { margin-bottom: 0; }
+    .stat-card .icon-circle i { vertical-align: middle; }
+    .stat-card.stat-blue { background: #f4f8ff; }
+    .stat-card.stat-green { background: #f4fff8; }
+    .stat-card.stat-red { background: #fff6f6; }
+    .stat-card .stat-title { letter-spacing: 0.01em; }
+    .stat-card .stat-value { letter-spacing: 0.01em; }
+    .stat-card .stat-percent { letter-spacing: 0.01em; }
+    .stat-percent.percent-green { color: #22c55e; }
+    .stat-percent.percent-yellow { color: #f59e0b; }
+    .stat-percent.percent-red { color: #ef4444; }
+    /* Estilos para los botones de exportación */
+    .btn-success {
+        background-color: #1d6f42;
+        border-color: #1d6f42;
+        color: white;
+        transition: all 0.3s ease;
+    }
+    .btn-success:hover {
+        background-color: #155d37;
+        border-color: #155d37;
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .btn-success i {
+        margin-right: 5px;
+    }
+    .btn-group {
+        gap: 8px;
+    }
+    .btn-group .btn {
+        border-radius: 4px;
+        padding: 8px 16px;
+        font-size: 0.9rem;
+    }
+</style>
+<div class="director-portal">
+    <div class="portal-header mb-4">
+        <h3 class="mb-0">Portal del Director</h3>
+        <small>Supervisión y análisis del desempeño docente</small>
+    </div>
+
+    <!-- Sección de Exportación -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fa fa-file-excel text-success"></i> Exportar Reportes</h5>
+                <div class="btn-group">
+                    <button class="btn btn-success" id="exportar-materias">
+                        <i class="fa fa-file-excel"></i> Desempeño por Materia
+                    </button>
+                    <button class="btn btn-success" id="exportar-profesores">
+                        <i class="fa fa-file-excel"></i> Profesores
+                    </button>
+                    <button class="btn btn-success" id="exportar-aprobacion">
+                        <i class="fa fa-file-excel"></i> Aprobación por Materia
+                    </button>
+                    <button class="btn btn-success" id="exportar-alertas">
+                        <i class="fa fa-file-excel"></i> Alertas y Notificaciones
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FILTROS GLOBALES -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">Trimestre</label>
+            <select id="filtro-trimestre" class="form-select">
+                @Html.Raw($"<option value=\"\" {selectedTodos}>Todos los trimestres</option>")
+                @foreach (var t in Model.TrimestresDisponibles)
+                {
+                    var selected = Model.TrimestreSeleccionado == t.Name ? "selected=\"selected\"" : "";
+                    var fechaInicio = t.StartDate.ToString("dd/MM/yyyy");
+                    var fechaFin = t.EndDate.ToString("dd/MM/yyyy");
+                    var optionText = $"{t.Name} ({fechaInicio} - {fechaFin})";
+                    @Html.Raw($"<option value=\"{t.Name}\" {selected}>{optionText}</option>")
+                }
+            </select>
+        </div>
+    </div>
+    <!-- Totales generales -->
+    <div class="row mb-4 g-3">
+        <div class="col-md-4">
+            <div class="stat-card stat-blue d-flex align-items-center p-3 h-100">
+                <div class="icon-circle bg-blue-soft me-3">
+                    <i class="fa fa-users fa-2x text-blue"></i>
+                </div>
+                <div>
+                    <div class="stat-title text-blue">Total Estudiantes</div>
+                    <div class="stat-value text-blue">@Model.TotalEstudiantes</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card stat-green d-flex align-items-center p-3 h-100">
+                <div class="icon-circle bg-green-soft me-3">
+                    <i class="fa fa-check-circle fa-2x text-green"></i>
+                </div>
+                <div>
+                    <div class="stat-title text-green">Aprobados</div>
+                    <div class="stat-value text-green">@Model.TotalAprobados</div>
+                    <div class="stat-percent @GetPercentClass(Model.PorcentajeAprobados)">@Model.PorcentajeAprobados.ToString("F1")%</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card stat-red d-flex align-items-center p-3 h-100">
+                <div class="icon-circle bg-red-soft me-3">
+                    <i class="fa fa-exclamation-triangle fa-2x text-red"></i>
+                </div>
+                <div>
+                    <div class="stat-title text-red">Reprobados</div>
+                    <div class="stat-value text-red">@Model.TotalReprobados</div>
+                    <div class="stat-percent @GetPercentClass(Model.PorcentajeReprobados, false)">@Model.PorcentajeReprobados.ToString("F1")%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Desempeño por materia (NUEVO FORMATO) -->
+    <div class="mb-4">
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white;">
+                <h5 class="mb-0"><i class="fa fa-book"></i> Desempeño por Materia</h5>
+            </div>
+            <div class="card-body">
+                <!-- Buscador -->
+                <div class="mb-3">
+                    <input type="text" id="buscador-desempeno-materia" class="form-control" placeholder="Buscar materia...">
+                </div>
+                <!-- Cards de materias -->
+                <div id="desempeno-materias-cards"></div>
+                <!-- Paginación -->
+                <nav>
+                    <ul class="pagination justify-content-center mt-3" id="desempeno-materias-pagination"></ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+    <!-- Profesores (NUEVO FORMATO) -->
+    <div class="mb-4">
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white;">
+                <h5 class="mb-0"><i class="fa fa-chalkboard-teacher"></i> Profesores</h5>
+            </div>
+            <div class="card-body">
+                <!-- Buscador -->
+                <div class="mb-3">
+                    <input type="text" id="buscador-profesores" class="form-control" placeholder="Buscar profesor o materia...">
+                </div>
+                <!-- Cards de profesores -->
+                <div id="profesores-cards"></div>
+                <!-- Paginación -->
+                <nav>
+                    <ul class="pagination justify-content-center mt-3" id="profesores-pagination"></ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+    <!-- Estadísticas y aprobación por materia -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-light" style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white;">
+                    <strong>Estadísticas de Aprobación</strong>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Tasa de Aprobación General</strong>
+                        <div class="d-flex align-items-center mb-2" style="gap: 1rem;">
+                            <div class="flex-grow-1">
+                                <div class="progress" style="height: 10px; background: #e5e7eb;">
+                                    <div class="progress-bar" role="progressbar"
+                                         style="width: @Model.TasaAprobacionGeneral.ToString("F1")%; background: linear-gradient(90deg, #22c55e 60%, #2563eb 100%);"
+                                         aria-valuenow="@Model.TasaAprobacionGeneral" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                            <div class="fw-bold" style="font-size: 1.2rem;">@Model.TasaAprobacionGeneral.ToString("F1")%</div>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2" style="gap: 1rem;">
+                            <div class="flex-fill text-center p-2" style="background: #e6f9ed; border-radius: 0.5rem;">
+                                <div class="text-success" style="font-size: 2rem; font-weight: 700;">@Model.TotalAprobados</div>
+                                <div class="text-success" style="font-size: 1rem;">Aprobados</div>
+                            </div>
+                            <div class="flex-fill text-center p-2" style="background: #fdeaea; border-radius: 0.5rem;">
+                                <div class="text-danger" style="font-size: 2rem; font-weight: 700;">@Model.TotalReprobados</div>
+                                <div class="text-danger" style="font-size: 1rem;">Reprobados</div>
+                            </div>
+                        </div>
+                        <div class="text-center fw-bold">
+                            Total: @(@Model.TotalAprobados + @Model.TotalReprobados)
+                            <span class="text-muted" style="font-size: 0.95em;">(Aprobados + Reprobados = Total)</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Promedio General</strong>
+                        <div class="h4">@Model.PromedioGeneralActual</div>
+                    </div>
+                    <div>
+                        <strong>Análisis de Tendencia</strong>
+                        <ul>
+                            @foreach (var rec in Model.Recomendaciones)
+                            {
+                                <li>@rec</li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-light" style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white;">
+                    <strong>Aprobación por Materia</strong>
+                </div>
+                <div class="card-body" id="materias-aprobacion-list">
+                    @{
+                        int pageSize = 5; // Materias por página
+                        int pageCount = (int)Math.Ceiling((double)Model.MateriasAprobacion.Count / pageSize);
+                    }
+                    <div id="materias-aprobacion-cards"></div>
+                    <nav>
+                        <ul class="pagination justify-content-center mt-3" id="materias-pagination"></ul>
+                    </nav>
+                    <div class="mt-3">
+                        <strong style="color:#2563eb;">Criterios de Aprobación:</strong>
+                        <ul>
+                            <li><span class="text-success fw-bold">Excelente:</span> 80% o más de aprobación</li>
+                            <li><span class="text-warning fw-bold">Regular:</span> Entre 60% y 79% de aprobación</li>
+                            <li><span class="text-danger fw-bold">Crítico:</span> Menos del 60% de aprobación</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Alertas y notificaciones -->
+    <div class="card mt-4">
+        <div class="card-header bg-light" style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white;">
+            <strong>Alertas y Notificaciones</strong>
+        </div>
+        <div class="card-body">
+            <div id="alertas-list"></div>
+            <div class="d-flex justify-content-center align-items-center mt-3 gap-2" id="alertas-vermas-pagination-container">
+                <button id="alertas-vermas" class="btn btn-primary btn-sm">Ver más</button>
+                <nav>
+                    <ul class="pagination mb-0" id="alertas-pagination"></ul>
+                </nav>
+                </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        // --------- Desempeño por Materia ---------
+        let materiasDesempeno = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MateriasDesempeno));
+        let materiasDesempenoFiltradas = materiasDesempeno;
+        const pageSizeMaterias = 10;
+        let currentPageMaterias = 1;
+
+        function renderDesempenoMaterias(page) {
+            let start = (page - 1) * pageSizeMaterias;
+            let end = start + pageSizeMaterias;
+            let html = '';
+            materiasDesempenoFiltradas.slice(start, end).forEach(mat => {
+                html += `
+                <div class="card mb-3" style="border-radius: 1rem; box-shadow: 0 2px 8px 0 rgba(37,99,235,0.04);">
+                    <div class="card-body pb-2 pt-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <strong style="font-size:1.1rem;">${mat.Nombre}</strong>
+                            <span class="badge" style="background:${mat.ColorBarra};color:white;font-size:1rem;padding:0.5em 1em;">Promedio: ${(typeof mat.Promedio === 'number' && !isNaN(mat.Promedio)) ? mat.Promedio.toFixed(1) : '-'}</span>
+                        </div>
+                        <div class="progress mb-2" style="height: 7px; background: #e5e7eb;">
+                            <div class="progress-bar" role="progressbar"
+                                style="width: ${(typeof mat.Promedio === 'number' && !isNaN(mat.Promedio) ? (mat.Promedio/5.0)*100 : 0)}%; background: ${mat.ColorBarra};"
+                                aria-valuenow="${mat.Promedio}" aria-valuemin="1" aria-valuemax="5"></div>
+                        </div>
+                        <div class="d-flex justify-content-between small">
+                            <span>Estudiantes: <b>${mat.Estudiantes}</b></span>
+                            <span class="text-success">Aprobados: <b>${mat.Aprobados}</b></span>
+                            <span class="text-danger">Reprobados: <b>${mat.Reprobados}</b></span>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('desempeno-materias-cards').innerHTML = html;
+        }
+
+        function renderPaginationMaterias() {
+            let pageCount = Math.ceil(materiasDesempenoFiltradas.length / pageSizeMaterias);
+            let html = '';
+            for (let i = 1; i <= pageCount; i++) {
+                html += `<li class="page-item${i === currentPageMaterias ? ' active' : ''}">
+                            <a class="page-link" href="#" onclick="goToPageMaterias(${i});return false;">${i}</a>
+                        </li>`;
+            }
+            document.getElementById('desempeno-materias-pagination').innerHTML = html;
+        }
+
+        function goToPageMaterias(page) {
+            currentPageMaterias = page;
+            renderDesempenoMaterias(page);
+            renderPaginationMaterias();
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            renderDesempenoMaterias(currentPageMaterias);
+            renderPaginationMaterias();
+            document.getElementById('buscador-desempeno-materia').addEventListener('input', function () {
+                let texto = this.value.toLowerCase();
+                materiasDesempenoFiltradas = materiasDesempeno.filter(mat =>
+                    mat.Nombre.toLowerCase().includes(texto)
+                );
+                currentPageMaterias = 1;
+                renderDesempenoMaterias(currentPageMaterias);
+                renderPaginationMaterias();
+            });
+        });
+
+        // --------- Profesores ---------
+        let profesores = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Profesores));
+        let profesoresFiltrados = profesores;
+        const pageSizeProfesores = 5;
+        let currentPageProfesores = 1;
+
+        function renderProfesores(page) {
+            let start = (page - 1) * pageSizeProfesores;
+            let end = start + pageSizeProfesores;
+            let html = '';
+            profesoresFiltrados.slice(start, end).forEach(prof => {
+                let badgeColor = prof.Estado === 'Excelente' ? '#22c55e' : (prof.Estado === 'Regular' ? '#f59e0b' : '#ef4444');
+                let estadoText = prof.Estado === 'Excelente' ? 'EXCELENTE' : (prof.Estado === 'Regular' ? 'REGULAR' : 'CRÍTICO');
+                html += `
+                <div class="card mb-3" style="border-radius: 1rem; box-shadow: 0 2px 8px 0 rgba(37,99,235,0.04);">
+                    <div class="card-body pb-2 pt-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong style="font-size:1.2rem;">${prof.Nombre}</strong>
+                                <div class="small text-muted">Materia(s): ${prof.Materia}</div>
+                            </div>
+                            <div class="text-end">
+                                <div class="badge" style="background:${badgeColor};color:white;font-size:1rem;padding:0.5em 1em;">${(typeof prof.Desempeno === 'number' && !isNaN(prof.Desempeno)) ? prof.Desempeno.toFixed(1) : '-'}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="small">
+                                <span class="text-success">Aprobados: <b>${prof.Aprobados}</b> (${(typeof prof.PorcentajeAprobados === 'number' && !isNaN(prof.PorcentajeAprobados)) ? prof.PorcentajeAprobados.toFixed(1) : '-' }%)</span>
+                            </div>
+                            <div class="small">
+                                <span class="text-danger">Reprobados: <b>${prof.Reprobados}</b> (${(typeof prof.PorcentajeReprobados === 'number' && !isNaN(prof.PorcentajeReprobados)) ? prof.PorcentajeReprobados.toFixed(1) : '-' }%)</span>
+                                <span class="badge ms-2" style="background:${badgeColor};color:white;">${estadoText}</span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between small text-muted">
+                            <span>Total estudiantes: <b>${prof.Estudiantes}</b></span>
+                            <span>Promedio: <b>${(typeof prof.Promedio === 'number' && !isNaN(prof.Promedio)) ? prof.Promedio.toFixed(1) : '-'}</b></span>
+                            <span>Última actividad: ${prof.UltimaActividad && prof.UltimaActividad !== '0001-01-01T00:00:00' ? prof.UltimaActividad.split('T')[0] : '-'}</span>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('profesores-cards').innerHTML = html;
+        }
+
+        function renderPaginationProfesores() {
+            let pageCount = Math.ceil(profesoresFiltrados.length / pageSizeProfesores);
+            let html = '';
+            for (let i = 1; i <= pageCount; i++) {
+                html += `<li class="page-item${i === currentPageProfesores ? ' active' : ''}">
+                            <a class="page-link" href="#" onclick="goToPageProfesores(${i});return false;">${i}</a>
+                        </li>`;
+            }
+            document.getElementById('profesores-pagination').innerHTML = html;
+        }
+
+        function goToPageProfesores(page) {
+            currentPageProfesores = page;
+            renderProfesores(page);
+            renderPaginationProfesores();
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            renderProfesores(currentPageProfesores);
+            renderPaginationProfesores();
+            document.getElementById('buscador-profesores').addEventListener('input', function () {
+                let texto = this.value.toLowerCase();
+                profesoresFiltrados = profesores.filter(prof =>
+                    prof.Nombre.toLowerCase().includes(texto) ||
+                    prof.Materia.toLowerCase().includes(texto)
+                );
+                currentPageProfesores = 1;
+                renderProfesores(currentPageProfesores);
+                renderPaginationProfesores();
+            });
+        });
+    </script>
+    <script>
+        // --------- Aprobación por materia ---------
+        let materias = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MateriasAprobacion));
+        const pageSize = 5;
+        let currentPage = 1;
+
+        function getBadgeColor(p) {
+            if (p >= 80) return '#22c55e';
+            if (p >= 60) return '#f59e0b';
+            return '#ef4444';
+        }
+
+        function renderMaterias(page) {
+            let start = (page - 1) * pageSize;
+            let end = start + pageSize;
+            let html = '';
+            materias.slice(start, end).forEach(mat => {
+                html += `
+                <div class="card mb-3" style="border-radius: 1rem; box-shadow: 0 2px 8px 0 rgba(37,99,235,0.04);">
+                    <div class="card-body pb-2 pt-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <strong style="font-size:1.1rem;">${mat.Nombre}</strong>
+                            <span class="badge" style="background:${getBadgeColor(mat.PorcentajeAprobacion)};color:white;font-size:1rem;padding:0.5em 1em;">
+                                ${(typeof mat.PorcentajeAprobacion === 'number' && !isNaN(mat.PorcentajeAprobacion)) ? mat.PorcentajeAprobacion.toFixed(1) : '-'}%
+                            </span>
+                        </div>
+                        <div class="progress mb-2" style="height: 7px; background: #e5e7eb;">
+                            <div class="progress-bar" role="progressbar"
+                                style="width: ${(typeof mat.PorcentajeAprobacion === 'number' && !isNaN(mat.PorcentajeAprobacion) ? mat.PorcentajeAprobacion : 0)}%; background: ${getBadgeColor(mat.PorcentajeAprobacion)};"
+                                aria-valuenow="${mat.PorcentajeAprobacion}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <div class="d-flex justify-content-between small">
+                            <span>Profesor: ${mat.Profesor || '-'}</span>
+                            <span>Total: ${mat.TotalEstudiantes || 0} estudiantes</span>
+                        </div>
+                        <div class="d-flex justify-content-between small">
+                            <span class="text-success">Aprobados: ${mat.Aprobados || 0}</span>
+                            <span class="text-danger">Reprobados: ${mat.Reprobados || 0}</span>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('materias-aprobacion-cards').innerHTML = html;
+        }
+
+        function renderPagination() {
+            let pageCount = Math.ceil(materias.length / pageSize);
+            let html = '';
+            if (pageCount <= 7) {
+            for (let i = 1; i <= pageCount; i++) {
+                html += `<li class="page-item${i === currentPage ? ' active' : ''}">
+                            <a class="page-link" href="#" onclick="goToPage(${i});return false;">${i}</a>
+                        </li>`;
+                }
+            } else {
+                if (currentPage > 3) {
+                    html += `<li class="page-item"><a class="page-link" href="#" onclick="goToPage(1);return false;">1</a></li>`;
+                    if (currentPage > 4) html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                }
+                let start = Math.max(1, currentPage - 1);
+                let end = Math.min(pageCount, currentPage + 1);
+                for (let i = start; i <= end; i++) {
+                    html += `<li class="page-item${i === currentPage ? ' active' : ''}">
+                                <a class="page-link" href="#" onclick="goToPage(${i});return false;">${i}</a>
+                            </li>`;
+                }
+                if (currentPage < pageCount - 2) {
+                    if (currentPage < pageCount - 3) html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                    html += `<li class="page-item"><a class="page-link" href="#" onclick="goToPage(${pageCount});return false;">${pageCount}</a></li>`;
+                }
+            }
+            document.getElementById('materias-pagination').innerHTML = html;
+        }
+
+        function goToPage(page) {
+            currentPage = page;
+            renderMaterias(page);
+            renderPagination();
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            renderMaterias(currentPage);
+            renderPagination();
+        });
+    </script>
+    <script>
+        // --------- Alertas y Notificaciones ---------
+        let alertas = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Alertas));
+        const pageSizeAlertas = 5;
+        let currentPageAlertas = 1;
+        let alertasVerMasCount = pageSizeAlertas;
+        let alertasModoVerMas = true;
+
+        function renderAlertas() {
+            let html = '';
+            let mostrar = alertasModoVerMas ? alertas.slice(0, alertasVerMasCount) : alertas.slice((currentPageAlertas - 1) * pageSizeAlertas, currentPageAlertas * pageSizeAlertas);
+            mostrar.forEach(alerta => {
+                html += `<div class="alert ${getAlertClass(alerta.Tipo)}" role="alert">
+                    <strong>${alerta.Titulo}</strong><br />
+                    <span>${alerta.Mensaje}</span>
+                </div>`;
+            });
+            document.getElementById('alertas-list').innerHTML = html;
+        }
+
+        function renderPaginationAlertas() {
+            let pageCount = Math.ceil(alertas.length / pageSizeAlertas);
+            let html = '';
+            if (pageCount <= 7) {
+                for (let i = 1; i <= pageCount; i++) {
+                    html += `<li class="page-item${i === currentPageAlertas ? ' active' : ''}">
+                                <a class="page-link" href="#" onclick="goToPageAlertas(${i});return false;">${i}</a>
+                            </li>`;
+                }
+            } else {
+                if (currentPageAlertas > 3) {
+                    html += `<li class="page-item"><a class="page-link" href="#" onclick="goToPageAlertas(1);return false;">1</a></li>`;
+                    if (currentPageAlertas > 4) html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                }
+                let start = Math.max(1, currentPageAlertas - 1);
+                let end = Math.min(pageCount, currentPageAlertas + 1);
+                for (let i = start; i <= end; i++) {
+                    html += `<li class="page-item${i === currentPageAlertas ? ' active' : ''}">
+                                <a class="page-link" href="#" onclick="goToPageAlertas(${i});return false;">${i}</a>
+                            </li>`;
+                }
+                if (currentPageAlertas < pageCount - 2) {
+                    if (currentPageAlertas < pageCount - 3) html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                    html += `<li class="page-item"><a class="page-link" href="#" onclick="goToPageAlertas(${pageCount});return false;">${pageCount}</a></li>`;
+                }
+            }
+            document.getElementById('alertas-pagination').innerHTML = html;
+        }
+
+        function goToPageAlertas(page) {
+            alertasModoVerMas = false;
+            currentPageAlertas = page;
+            renderAlertas();
+            renderPaginationAlertas();
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            renderAlertas();
+            renderPaginationAlertas();
+            document.getElementById('alertas-vermas').addEventListener('click', function () {
+                alertasModoVerMas = true;
+                alertasVerMasCount += pageSizeAlertas;
+                renderAlertas();
+                renderPaginationAlertas();
+            });
+        });
+
+        function getAlertClass(tipo) {
+            switch (tipo) {
+                case "Bajo": return "alert-warning";
+                case "Excelente": return "alert-success";
+                case "Reporte": return "alert-info";
+                case "Critico": return "alert-danger";
+                default: return "alert-secondary";
+            }
+        }
+    </script>
+    <script>
+        // Filtro automático al cambiar el trimestre
+        $('#filtro-trimestre').on('change', function() {
+            const trimestre = $(this).val();
+            $(this).prop('disabled', true);
+            $.ajax({
+                url: '/Director/FiltrarPorTrimestre',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(trimestre || ""),
+                timeout: 10000,
+                success: function(data) {
+                    actualizarDashboard(data);
+                },
+                error: function() {
+                    alert('Error al filtrar los datos. Por favor, intente nuevamente.');
+                },
+                complete: function() {
+                    $('#filtro-trimestre').prop('disabled', false);
+                }
+            });
+        });
+
+        // Función robusta para actualizar el dashboard
+        function actualizarDashboard(data) {
+            // Totales generales
+            $('.stat-value.text-blue').text(data.totalEstudiantes);
+            $('.stat-value.text-green').text(data.totalAprobados);
+            $('.stat-value.text-red').text(data.totalReprobados);
+            $('.stat-percent.percent-green').text(data.porcentajeAprobados.toFixed(1) + '%');
+            $('.stat-percent.percent-red').text(data.porcentajeReprobados.toFixed(1) + '%');
+            // Promedio general
+            $('.h4').first().text(data.promedioGeneralActual);
+            // Recomendaciones
+            let recs = '';
+            (data.recomendaciones || []).forEach(function(rec) { recs += `<li>${rec}</li>`; });
+            $('.card-body ul').first().html(recs);
+            // Desempeño por materia
+            materiasDesempeno = data.materiasDesempeno || [];
+            materiasDesempenoFiltradas = materiasDesempeno;
+            currentPageMaterias = 1;
+            renderDesempenoMaterias(currentPageMaterias);
+            renderPaginationMaterias();
+            // Profesores
+            profesores = data.profesores || [];
+            profesoresFiltrados = profesores;
+            currentPageProfesores = 1;
+            renderProfesores(currentPageProfesores);
+            renderPaginationProfesores();
+            // Aprobación por materia
+            materias = data.materiasAprobacion || [];
+            currentPage = 1;
+            renderMaterias(currentPage);
+            renderPagination();
+            // Alertas y notificaciones
+            alertas = data.alertas || [];
+            currentPageAlertas = 1;
+            alertasVerMasCount = pageSizeAlertas;
+            alertasModoVerMas = true;
+            renderAlertas();
+            renderPaginationAlertas();
+            // Limpiar buscadores
+            $('#buscador-desempeno-materia').val('');
+            $('#buscador-profesores').val('');
+        }
+    </script>
+    <script>
+        // Exportar Desempeño por Materia
+        document.getElementById('exportar-materias').addEventListener('click', function () {
+            const data = materiasDesempenoFiltradas.map(mat => ({
+                Materia: mat.Nombre,
+                Estudiantes: mat.Estudiantes,
+                Promedio: mat.Promedio,
+                Aprobados: mat.Aprobados,
+                Reprobados: mat.Reprobados
+            }));
+            exportToExcel(data, 'DesempeñoMaterias.xlsx');
+        });
+        // Exportar Profesores
+        document.getElementById('exportar-profesores').addEventListener('click', function () {
+            const data = profesoresFiltrados.map(prof => ({
+                Profesor: prof.Nombre,
+                Materia: prof.Materia,
+                Desempeño: prof.Desempeno,
+                Estudiantes: prof.Estudiantes,
+                Promedio: prof.Promedio,
+                Aprobados: prof.Aprobados,
+                '% Aprobados': prof.PorcentajeAprobados,
+                Reprobados: prof.Reprobados,
+                '% Reprobados': prof.PorcentajeReprobados,
+                'Última Actividad': prof.UltimaActividad,
+                Estado: prof.Estado
+            }));
+            exportToExcel(data, 'Profesores.xlsx');
+        });
+        // Exportar Aprobación por Materia
+        document.getElementById('exportar-aprobacion').addEventListener('click', function () {
+            const data = materias.map(mat => ({
+                Materia: mat.Nombre,
+                Profesor: mat.Profesor,
+                'Total Estudiantes': mat.TotalEstudiantes,
+                Aprobados: mat.Aprobados,
+                Reprobados: mat.Reprobados,
+                '% Aprobación': mat.PorcentajeAprobacion
+            }));
+            exportToExcel(data, 'AprobacionMaterias.xlsx');
+        });
+        // Exportar Alertas
+        document.getElementById('exportar-alertas').addEventListener('click', function () {
+            const data = alertas.map(alerta => ({
+                Tipo: alerta.Tipo,
+                Titulo: alerta.Titulo,
+                Mensaje: alerta.Mensaje
+            }));
+            exportToExcel(data, 'AlertasNotificaciones.xlsx');
+        });
+        // Función utilitaria para exportar a Excel
+        function exportToExcel(jsonData, fileName) {
+            const ws = XLSX.utils.json_to_sheet(jsonData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Datos');
+            XLSX.writeFile(wb, fileName);
+        }
+    </script>
+}
+@functions {
+    public string GetAlertClass(string tipo)
+    {
+        switch (tipo)
+        {
+            case "Bajo": return "alert-warning";
+            case "Excelente": return "alert-success";
+            case "Reporte": return "alert-info";
+            case "Critico": return "alert-danger";
+            default: return "alert-secondary";
+        }
+    }
+    public string GetPercentClass(double percent, bool isAprobado = true)
+    {
+        if (isAprobado)
+        {
+            if (percent >= 80) return "percent-green";
+            if (percent >= 60) return "percent-yellow";
+            return "percent-red";
+        }
+        else
+        {
+            if (percent >= 40) return "percent-red";
+            if (percent >= 20) return "percent-yellow";
+            return "percent-green";
+        }
+    }
+} 

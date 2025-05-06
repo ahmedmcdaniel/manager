@@ -1,0 +1,114 @@
+﻿<script>
+    $(document).ready(function () {
+        window.subjectTable = $('#subjectTable').DataTable({
+            language: {
+                search: "Buscar:",
+                lengthMenu: "Mostrar _MENU_ registros",
+                zeroRecords: "No se encontraron materias",
+                info: "Mostrando _START_ a _END_ de _TOTAL_ materias",
+                infoEmpty: "Sin materias disponibles",
+                infoFiltered: "(filtrado de _MAX_ materias)"
+            }
+        });
+    });
+
+    window.createSubject = function () {
+        const name = $('#newSubjectName').val().trim();
+        if (!name) {
+            Swal.fire('Advertencia', 'El nombre no puede estar vacío.', 'warning');
+            return;
+        }
+
+        $.post('/Subject/Create', { name })
+            .done(function (data) {
+                const newRow = $(`
+                    <tr data-id="${data.id}">
+                        <td>
+                            <span class="subject-name-text">${data.name}</span>
+                            <input type="text" class="form-control subject-name-input d-none" value="${data.name}" />
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-warning btn-edit-subject">Editar</button>
+                            <button class="btn btn-sm btn-success btn-save-subject d-none">Guardar</button>
+                            <button class="btn btn-sm btn-danger btn-delete-subject">Eliminar</button>
+                        </td>
+                    </tr>
+                `);
+                subjectTable.row.add(newRow).draw();
+
+                $('#newSubjectName').val('');
+                Swal.fire('¡Éxito!', 'La materia fue creada correctamente.', 'success');
+            })
+            .fail(function () {
+                Swal.fire('Error', 'Error al crear la materia.', 'error');
+            });
+    };
+
+    $('#subjectTable').on('click', '.btn-edit-subject', function () {
+        const row = $(this).closest('tr');
+        row.find('.subject-name-text').addClass('d-none');
+        row.find('.subject-name-input').removeClass('d-none');
+        row.find('.btn-edit-subject').addClass('d-none');
+        row.find('.btn-save-subject').removeClass('d-none');
+    });
+
+    $('#subjectTable').on('click', '.btn-save-subject', function () {
+        const row = $(this).closest('tr');
+        const subject = {
+            Id: row.data('id'),
+            Name: row.find('.subject-name-input').val().trim()
+        };
+
+        if (!subject.Name) {
+            Swal.fire('Advertencia', 'El nombre no puede estar vacío.', 'warning');
+            return;
+        }
+
+        $.ajax({
+            url: '/Subject/Edit',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(subject)
+        })
+        .done(function (data) {
+            row.find('.subject-name-text').text(data.name).removeClass('d-none');
+            row.find('.subject-name-input').addClass('d-none');
+            row.find('.btn-edit-subject').removeClass('d-none');
+            row.find('.btn-save-subject').addClass('d-none');
+
+            Swal.fire('¡Actualizado!', 'La materia fue actualizada correctamente.', 'success');
+        })
+        .fail(() => Swal.fire('Error', 'Error al actualizar la materia.', 'error'));
+    });
+
+    $('#subjectTable').on('click', '.btn-delete-subject', function () {
+        const row = $(this).closest('tr');
+        const id = row.data('id');
+
+        if (!id) {
+            Swal.fire('Error', 'ID no válido para eliminar.', 'error');
+            return;
+        }
+
+        Swal.fire({
+            title: '¿Eliminar esta materia?',
+            text: "Esta acción no se puede deshacer.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // ✅ Aquí se usa $.post con datos como form-urlencoded
+                $.post('/Subject/Delete', { id })
+                    .done(function () {
+                        subjectTable.row(row).remove().draw();
+                        Swal.fire('Eliminado', 'La materia fue eliminada correctamente.', 'success');
+                    })
+                    .fail(() => Swal.fire('Error', 'Error al eliminar la materia.', 'error'));
+            }
+        });
+    });
+</script>

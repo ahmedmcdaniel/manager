@@ -1,0 +1,134 @@
+﻿<script>
+    let gradeDataTable;
+
+    $(document).ready(function () {
+        gradeDataTable = $('#gradeTable').DataTable({
+            language: {
+                search: "Buscar:",
+                lengthMenu: "Mostrar _MENU_ registros",
+                zeroRecords: "No se encontraron grados",
+                info: "Mostrando _START_ a _END_ de _TOTAL_ grados",
+                infoEmpty: "Sin grados disponibles",
+                infoFiltered: "(filtrado de _MAX_ grados)"
+            }
+        });
+    });
+
+    // Hacer la función global
+    window.createGrade = function () {
+        const name = $('#newGradeName').val().trim();
+        const description = $('#newGradeDescription').val().trim();
+
+        if (!name) {
+            Swal.fire('Advertencia', 'El nombre no puede estar vacío.', 'warning');
+            return;
+        }
+
+        const grade = { name, description };
+
+        $.ajax({
+            url: '/GradeLevel/Create',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(grade)
+        })
+        .done((response) => {
+            Swal.fire('¡Éxito!', 'El grado fue creado correctamente.', 'success');
+            $('#newGradeName').val('');
+            $('#newGradeDescription').val('');
+
+            const newRow = `
+                <tr data-id="${response.id}">
+                    <td>
+                        <span class="grade-name-text">${response.name}</span>
+                        <input type="text" class="form-control d-none grade-name-input" value="${response.name}" />
+                    </td>
+                    <td>
+                        <span class="grade-description-text">${response.description || ''}</span>
+                        <textarea class="form-control d-none grade-description-input">${response.description || ''}</textarea>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-primary btn-edit-grade">Editar</button>
+                        <button class="btn btn-sm btn-success d-none btn-save-grade">Guardar</button>
+                        <button class="btn btn-sm btn-danger btn-delete-grade">Eliminar</button>
+                    </td>
+                </tr>
+            `;
+
+            // Agregar nueva fila a DataTable
+            const rowNode = $(newRow);
+            gradeDataTable.row.add(rowNode).draw();
+
+        })
+        .fail(() => Swal.fire('Error', 'Error al crear el grado.', 'error'));
+    };
+
+    $('#gradeTable').on('click', '.btn-edit-grade', function () {
+        const row = $(this).closest('tr');
+        row.find('.grade-name-text, .grade-description-text').addClass('d-none');
+        row.find('.grade-name-input, .grade-description-input').removeClass('d-none');
+        row.find('.btn-edit-grade').addClass('d-none');
+        row.find('.btn-save-grade').removeClass('d-none');
+    });
+
+    $('#gradeTable').on('click', '.btn-save-grade', function () {
+        const row = $(this).closest('tr');
+
+        const grade = {
+            Id: row.data('id'),
+            Name: row.find('.grade-name-input').val().trim(),
+            Description: row.find('.grade-description-input').val().trim()
+        };
+
+        if (!grade.Name) {
+            Swal.fire('Advertencia', 'El nombre no puede estar vacío.', 'warning');
+            return;
+        }
+
+        $.ajax({
+            url: '/GradeLevel/Edit',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(grade)
+        })
+        .done(() => {
+            row.find('.grade-name-text').text(grade.Name).removeClass('d-none');
+            row.find('.grade-description-text').text(grade.Description).removeClass('d-none');
+            row.find('.grade-name-input, .grade-description-input').addClass('d-none');
+            row.find('.btn-edit-grade').removeClass('d-none');
+            row.find('.btn-save-grade').addClass('d-none');
+            Swal.fire('¡Actualizado!', 'El grado fue actualizado correctamente.', 'success');
+        })
+        .fail(() => Swal.fire('Error', 'Error al actualizar el grado.', 'error'));
+    });
+
+    $('#gradeTable').on('click', '.btn-delete-grade', function () {
+        const row = $(this).closest('tr');
+        const id = row.data('id');
+
+        Swal.fire({
+            title: '¿Eliminar este grado?',
+            text: "Esta acción no se puede deshacer.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/GradeLevel/Delete',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ id })
+                })
+                .done(() => {
+                    gradeDataTable.row(row).remove().draw();
+                    Swal.fire('Eliminado', 'El grado fue eliminado correctamente.', 'success');
+                })
+                .fail(() => Swal.fire('Error', 'Error al eliminar el grado.', 'error'));
+            }
+        });
+    });
+</script>

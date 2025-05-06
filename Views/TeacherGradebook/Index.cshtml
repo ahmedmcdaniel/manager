@@ -1,0 +1,1848 @@
+﻿@model SchoolManager.ViewModels.TeacherGradebookViewModel
+
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Portal del Docente";
+}
+
+<style>
+    :root {
+        --primary-color: #2563eb;
+        --secondary-color: #475569;
+        --success-color: #22c55e;
+        --warning-color: #f59e0b;
+        --danger-color: #ef4444;
+        --light-bg: #f8fafc;
+        --border-color: #e2e8f0;
+    }
+
+    body {
+        background-color: var(--light-bg);
+    }
+
+    .teacher-portal {
+        padding: 1.5rem 0;
+    }
+
+    .portal-header {
+        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .portal-header h3 {
+        margin: 0;
+        font-size: 1.75rem;
+        font-weight: 600;
+    }
+
+    .portal-header small {
+        opacity: 0.9;
+        font-size: 1rem;
+    }
+
+    .nav-tabs {
+        border: none;
+        background: white;
+        padding: 0.5rem;
+        border-radius: 0.75rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+    }
+
+    .nav-tabs .nav-link {
+        border: none;
+        padding: 1rem 1.5rem;
+        color: var(--secondary-color);
+        border-radius: 0.5rem;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        margin: 0 0.25rem;
+    }
+
+    .nav-tabs .nav-link:hover {
+        background-color: var(--light-bg);
+        color: var(--primary-color);
+    }
+
+    .nav-tabs .nav-link.active {
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    .card {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+        background: white;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+        color: white;
+        border-bottom: 1px solid var(--border-color);
+        padding: 1.25rem;
+        border-radius: 1rem 1rem 0 0 !important;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .form-control, .form-select {
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        padding: 0.75rem 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .btn-group {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        border-radius: 0.75rem;
+        overflow: hidden;
+    }
+
+    .btn-outline-primary {
+        border-color: var(--border-color);
+        color: var(--secondary-color);
+        transition: all 0.3s ease;
+    }
+
+    .btn-outline-primary:hover,
+    .btn-outline-primary.active {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    .table {
+        border-radius: 0.5rem;
+        overflow: hidden;
+        margin-bottom: 0;
+    }
+
+    .table thead th {
+        background-color: var(--light-bg);
+        border-bottom: 2px solid var(--border-color);
+        padding: 1rem;
+        font-weight: 600;
+        color: var(--secondary-color);
+        text-align: center;
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+
+    .table tbody td {
+        padding: 1rem;
+        vertical-align: middle;
+        text-align: center;
+    }
+
+    .score-cell {
+        background-color: white;
+        border: 1px solid var(--border-color);
+        border-radius: 0.25rem;
+        padding: 0.5rem;
+        text-align: center;
+        transition: all 0.2s ease;
+        min-width: 80px;
+    }
+
+    .score-cell:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .status-badge {
+        font-size: 0.875rem;
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .status-badge.present {
+        background-color: #dcfce7;
+        color: #15803d;
+    }
+
+    .status-badge.absent {
+        background-color: #fee2e2;
+        color: #b91c1c;
+    }
+
+    .status-badge.late {
+        background-color: #fef3c7;
+        color: #b45309;
+    }
+
+    .action-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 8px;
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .action-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        opacity: 0.9;
+    }
+
+    .action-btn.present {
+        background-color: var(--success-color);
+    }
+
+    .action-btn.absent {
+        background-color: var(--danger-color);
+    }
+
+    .action-btn.late {
+        background-color: var(--warning-color);
+    }
+
+    .action-btn.active {
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.8), 0 0 0 6px currentColor;
+    }
+
+    .info-alert {
+        background-color: #f0f9ff;
+        border-left: 4px solid var(--primary-color);
+        padding: 1.25rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .info-alert h5 {
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+
+    .info-alert p {
+        color: var(--secondary-color);
+        margin: 0;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #1e40af 100%);
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, var(--success-color) 0%, #16a34a 100%);
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-success:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .statistics-card {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .statistics-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .statistics-card .display-4 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 1rem 0;
+        background: linear-gradient(135deg, var(--primary-color) 0%, #1e40af 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .attendance-filters {
+        background-color: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+    }
+
+    .search-input {
+        position: relative;
+    }
+
+    .search-input i {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--secondary-color);
+    }
+
+    .search-input input {
+        padding-left: 2.5rem;
+    }
+
+   
+        .portal-header {
+            padding: 1.5rem;
+        }
+
+        .nav-tabs .nav-link {
+            padding: 0.75rem 1rem;
+        }
+
+        .card-header {
+            padding: 1rem;
+        }
+
+        .card-body {
+            padding: 1rem;
+        }
+
+        .btn-group {
+            flex-direction: column;
+        }
+
+        .btn-outline-primary {
+            width: 100%;
+            margin: 0.25rem 0;
+        }
+
+        .statistics-card {
+            margin-bottom: 1rem;
+        }
+    }
+</style>
+
+<div class="teacher-portal">
+    <!-- ENCABEZADO -->
+    <div class="portal-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h3 class="mb-0">📘 Portal del Docente</h3>
+                <small>@Model.Teacher.FullName – @Model.Teacher.Email</small>
+            </div>
+            <div class="text-end">
+                <p class="mb-0 opacity-75">@DateTime.Now.ToString("dddd, dd 'de' MMMM 'de' yyyy")</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABS PRINCIPALES -->
+    <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active d-flex align-items-center gap-2" id="notas-tab" data-bs-toggle="tab" data-bs-target="#notasTab" type="button" role="tab">
+                <i class="bi bi-pencil-square"></i> Registrar Notas
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link d-flex align-items-center gap-2" id="resumen-tab" data-bs-toggle="tab" data-bs-target="#resumenTab" type="button" role="tab">
+                <i class="bi bi-bar-chart-line"></i> Promedios Finales
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link d-flex align-items-center gap-2" id="asistencia-tab" data-bs-toggle="tab" data-bs-target="#asistenciaTab" type="button" role="tab">
+                <i class="bi bi-calendar-check"></i> Asistencias
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="mainTabContent">
+        <!-- TAB: REGISTRO DE NOTAS -->
+        <div class="tab-pane fade show active" id="notasTab" role="tabpanel">
+            <!-- Filtros -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Trimestre</label>
+                            <select id="selTrimester" class="form-select">
+                                @foreach (var t in Model.Trimesters)
+                                {
+                                    <option value="@t.Name">@t.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold">Materia y Grupo</label>
+                            <select id="selGroup" class="form-select">
+                                @foreach (var subject in Model.Teacher.SubjectGroupDetails)
+                                {
+                                    foreach (var group in subject.GroupGradePairs)
+                                    {
+                                        var value = $"{subject.SubjectId}|{group.GroupId}|{group.GradeLevelId}";
+                                        <option value="@value">@subject.SubjectName - @group.GradeLevelName @group.GroupName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FORMULARIO: AGREGAR ACTIVIDAD -->
+            <div class="card">
+                <div class="card-header d-flex align-items-center gap-2">
+                    <i class="bi bi-plus-circle text-success fs-4"></i>
+                    <h5 class="mb-0">Agregar Nueva Actividad</h5>
+                </div>
+                <div class="card-body">
+                    <form id="formNew" class="row g-3 align-items-end" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        <div class="col-md-4">
+                            <label class="form-label">Nombre de la Actividad</label>
+                            <input id="activityName" name="Name" class="form-control" placeholder="Ej. Tarea 2, Examen Final" required />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Tipo</label>
+                            <select id="activityType" name="Type" class="form-select">
+                                @foreach (var t in Model.Types)
+                                {
+                                    <option value="@t.Name">@t.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Archivo (opcional)</label>
+                            <input type="file" id="activityFile" name="Pdf" class="form-control" />
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" id="btnAddActivity" class="btn btn-primary w-100">
+                                <i class="bi bi-plus-circle me-2"></i> Agregar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- TABLA DE CALIFICACIONES -->
+            <div class="card">
+                <div class="card-header d-flex align-items-center gap-2">
+                    <i class="bi bi-journal-check text-success fs-4"></i>
+                    <h5 class="mb-0">Registro de Calificaciones</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3 align-items-end mb-3">
+                        <div class="col-md-9">
+                            <div class="text-muted">
+                                <i class="bi bi-info-circle me-2"></i>
+                                Asegúrese de guardar los cambios después de ingresar las calificaciones.
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="button" id="btnGuardarNotas" class="btn btn-primary w-100">
+                            <i class="bi bi-save me-2"></i> Guardar Notas
+                        </button>
+                    </div>
+                </div>
+                    <div class="table-responsive">
+                        <table id="gradebook" class="table table-hover mb-0">
+                            <thead>
+                                <tr id="hdrRow">
+                                    <th style="text-align: left;">Estudiante</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bodyRows"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: RESUMEN FINAL -->
+        <div class="tab-pane fade" id="resumenTab" role="tabpanel">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-bar-chart-line me-2"></i>Resumen Final por Estudiante</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table id="summaryTable" class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Estudiante</th>
+                                    <th>1er Trimestre</th>
+                                    <th>2do Trimestre</th>
+                                    <th>3er Trimestre</th>
+                                    <th>Promedio Final</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resumenBody">
+                                @foreach (var student in Model.StudentAverages)
+                                {
+                                    var t1 = student.Promedios.ContainsKey("1T") ? student.Promedios["1T"] : 0.0m;
+                                    var t2 = student.Promedios.ContainsKey("2T") ? student.Promedios["2T"] : 0.0m;
+                                    var t3 = student.Promedios.ContainsKey("3T") ? student.Promedios["3T"] : 0.0m;
+
+                                    var trimestresValidos = 0;
+                                    decimal sumaTrimestreValidos = 0;
+
+                                    if (t1 > 0) { trimestresValidos++; sumaTrimestreValidos += t1; }
+                                    if (t2 > 0) { trimestresValidos++; sumaTrimestreValidos += t2; }
+                                    if (t3 > 0) { trimestresValidos++; sumaTrimestreValidos += t3; }
+
+                                    var promedioFinal = trimestresValidos > 0 ? sumaTrimestreValidos / trimestresValidos : 0.0m;
+                                    var promedioTruncado = Math.Floor(promedioFinal * 10) / 10;
+                                    var estado = promedioTruncado >= 3.0m ? "Aprobado" : "Reprobado";
+                                    var estadoClase = estado == "Aprobado" ? "text-success" : "text-danger";
+
+                                    <tr>
+                                        <td>@student.StudentFullName</td>
+                                        <td>@t1.ToString("0.0")</td>
+                                        <td>@t2.ToString("0.0")</td>
+                                        <td>@t3.ToString("0.0")</td>
+                                        <td><strong>@promedioTruncado.ToString("0.0")</strong></td>
+                                        <td class="@estadoClase fw-semibold">@estado</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: ASISTENCIAS -->
+        <div class="tab-pane fade" id="asistenciaTab" role="tabpanel" aria-labelledby="asistencia-tab">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-calendar-check me-2"></i>Módulo de Asistencia</h5>
+                    <div class="text-white-50">Registro y seguimiento de asistencia de estudiantes</div>
+                </div>
+                <div class="card-body">
+                    <!-- Nav tabs internas -->
+                    <ul class="nav nav-tabs mb-4" id="innerAttendanceTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active d-flex align-items-center gap-2" id="tomar-tab" data-bs-toggle="tab" data-bs-target="#tomar" type="button" role="tab" aria-controls="tomar" aria-selected="true">
+                                <i class="bi bi-calendar2-check"></i> Tomar Asistencia
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link d-flex align-items-center gap-2" id="historial-tab" data-bs-toggle="tab" data-bs-target="#historial" type="button" role="tab" aria-controls="historial" aria-selected="false">
+                                <i class="bi bi-clock-history"></i> Historial
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link d-flex align-items-center gap-2" id="estadisticas-tab" data-bs-toggle="tab" data-bs-target="#estadisticas" type="button" role="tab" aria-controls="estadisticas" aria-selected="false">
+                                <i class="bi bi-bar-chart-line"></i> Estadísticas
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- Contenido de los tabs internos -->
+                    <div class="tab-content" id="innerAttendanceTabsContent">
+                        <!-- TAB 1: TOMAR ASISTENCIA -->
+                        <div class="tab-pane fade show active" id="tomar" role="tabpanel" aria-labelledby="tomar-tab">
+                            <!-- Filtros -->
+                            <div class="row mb-4">
+                                <div class="col-md-6 col-lg-3 mb-3">
+                                    <label for="fecha" class="form-label">Fecha</label>
+                                    <div class="input-group">
+                                        <input type="date" class="form-control" id="fecha" value="@DateTime.Now.ToString("yyyy-MM-dd")">
+                                        <span class="input-group-text bg-white">
+                                            <i class="bi bi-calendar3"></i>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 col-lg-3 mb-3">
+                                    <label for="filtroGradoAsistencia" class="form-label">Filtrar por Grado</label>
+                                    <select class="form-select" id="filtroGradoAsistencia">
+                                        <option value="">Todos los grados</option>
+                                        @foreach (var subject in Model.Teacher.SubjectGroupDetails)
+                                        {
+                                            foreach (var group in subject.GroupGradePairs)
+                                            {
+                                                <option value="@group.GradeLevelId">@group.GradeLevelName @group.GroupName</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+
+                                <div class="col-md-12 col-lg-6 mb-3">
+                                    <label for="buscarEstudiante" class="form-label">Buscar Estudiante</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white">
+                                            <i class="bi bi-search"></i>
+                                        </span>
+                                        <input type="text" class="form-control" id="buscarEstudiante" placeholder="Nombre del estudiante">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Información de asistencia -->
+                            <div class="info-alert mb-4">
+                                <h5 class="mb-1"><i class="bi bi-calendar-event me-2"></i>Asistencia para: @DateTime.Now.ToString("dddd, dd 'de' MMMM 'de' yyyy")</h5>
+                                <p class="mb-0 text-muted">Todos los estudiantes están marcados como presentes por defecto. Solo marque ausencias o tardanzas.</p>
+                            </div>
+
+                            <!-- Tabla de estudiantes -->
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Estudiante</th>
+                                            <th>Grado</th>
+                                            <th>Estado</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="asistenciaBody">
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="text-end mt-3">
+                                <button id="btnGuardarAsistencia" class="btn btn-primary">
+                                    <i class="bi bi-save me-2"></i> Guardar Asistencia
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- TAB 2: HISTORIAL -->
+                        <div class="tab-pane fade" id="historial" role="tabpanel" aria-labelledby="historial-tab">
+                            <div class="row mb-4">
+                                <div class="col-md-4">
+                                    <label class="form-label">Materia, Grado y Grupo</label>
+                                    <select class="form-select" id="filtroGrupoHistorial">
+                                        <option value="">Seleccione materia, grado y grupo</option>
+                                        @foreach (var subject in Model.Teacher.SubjectGroupDetails)
+                                        {
+                                            foreach (var group in subject.GroupGradePairs)
+                                            {
+                                                var value = $"{subject.SubjectId}|{group.GroupId}|{group.GradeLevelId}";
+                                                var text = $"{subject.SubjectName} - {group.GradeLevelName} - {group.GroupName}";
+                                                <option value="@value">@text</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Estudiante</label>
+                                    <select class="form-select" id="estudianteHistorial">
+                                        <option value="">Todos los estudiantes</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Fecha Inicio</label>
+                                    <input type="date" class="form-control" id="fechaInicio">
+                                    <label class="form-label mt-2">Fecha Fin</label>
+                                    <input type="date" class="form-control" id="fechaFin">
+                                </div>
+                            </div>
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end mb-4">
+                                <button class="btn btn-primary" id="btnBuscarHistorial">
+                                    <i class="bi bi-search me-2"></i> Buscar
+                                </button>
+                            </div>
+                            <div id="resultadosHistorial">
+                                <p class="text-muted">Seleccione un rango de fechas para ver el historial de asistencias.</p>
+                            </div>
+                        </div>
+
+                        <!-- TAB 3: ESTADÍSTICAS -->
+                        <div class="tab-pane fade" id="estadisticas" role="tabpanel" aria-labelledby="estadisticas-tab">
+                            <div class="row mb-4">
+                                <div class="col-md-4">
+                                    <div class="statistics-card">
+                                        <h5 class="card-title">Asistencia General</h5>
+                                        <div class="display-4 text-primary">92%</div>
+                                        <p class="text-muted">Promedio de asistencia</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="statistics-card">
+                                        <h5 class="card-title">Ausencias</h5>
+                                        <div class="display-4 text-danger">5%</div>
+                                        <p class="text-muted">Total del período actual</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="statistics-card">
+                                        <h5 class="card-title">Tardanzas</h5>
+                                        <div class="display-4 text-warning">3%</div>
+                                        <p class="text-muted">Total del período actual</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Filtros internos de estadísticas -->
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Trimestre</label>
+                                    <select id="trimestreEstadisticas" class="form-select">
+                                        @foreach (var t in Model.Trimesters)
+                                        {
+                                            <option value="@t.Name" data-inicio="@t.StartDate.ToString("yyyy-MM-dd")" data-fin="@t.EndDate.ToString("yyyy-MM-dd")">@t.Name</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-md-6 d-flex align-items-end">
+                                    <button id="btnConsultarEstadisticas" class="btn btn-primary w-100">
+                                        <i class="bi bi-bar-chart-line me-2"></i> Consultar estadísticas
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Estadísticas por Estudiante</h5>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover mb-0" id="tablaEstadisticasEstudiantes">
+                                            <thead>
+                                                <tr>
+                                                    <th>Estudiante</th>
+                                                    <th>Asistencias</th>
+                                                    <th>Ausencias</th>
+                                                    <th>Tardanzas</th>
+                                                    <th>% Asistencia</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <!-- Aquí se llenan los datos por JS -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+@section Scripts {
+    <script>
+        $(document).ready(() => {
+            const teacherId = '@Model.TeacherId';
+            const students = [];
+            const activities = { tarea: [], parcial: [], examen: [] };
+            let scores = {};
+            const studentAnnualScores = {};
+
+            console.log("Datos de studentAnnualScores al cargar:", studentAnnualScores);
+
+            function truncateToOneDecimal(value) {
+                return Math.floor(value * 10) / 10;
+            }
+
+            function validateScore(score) {
+                if (isNaN(score)) return 0;
+                return Math.max(1.0, Math.min(5.0, score));
+            }
+
+            function updateResumenTable() {
+                const resumenBody = $('#resumenBody');
+                resumenBody.empty();
+
+                students.forEach(s => {
+                    const trimesterData = studentAnnualScores[s.id] || {};
+                    const t1 = trimesterData['1T'] || 0;
+                    const t2 = trimesterData['2T'] || 0;
+                    const t3 = trimesterData['3T'] || 0;
+                    const count = [t1, t2, t3].filter(n => n > 0).length;
+                    const promedio = count > 0 ? ((t1 + t2 + t3) / count) : 0;
+                    const truncPromedio = truncateToOneDecimal(promedio);
+                    const estado = truncPromedio >= 3.0 ? 'Aprobado' : 'Reprobado';
+
+                    const row = `
+                        <tr>
+                            <td>${s.fullName}</td>
+                            <td>${t1.toFixed(1)}</td>
+                            <td>${t2.toFixed(1)}</td>
+                            <td>${t3.toFixed(1)}</td>
+                            <td><strong>${truncPromedio.toFixed(1)}</strong></td>
+                            <td class="${estado === 'Aprobado' ? 'text-success' : 'text-danger'}">${estado}</td>
+                        </tr>`;
+                    resumenBody.append(row);
+                });
+            }
+
+            function saveCurrentScores() {
+                $('.score-cell').each(function () {
+                    const $cell = $(this);
+                    const student = $cell.data('stu');
+                    const type = $cell.data('type');
+                    const act = $cell.data('act');
+                    const value = $cell.text().trim();
+
+                    if (value) {
+                        if (!scores[student]) scores[student] = {};
+                        if (!scores[student][type]) scores[student][type] = {};
+                        scores[student][type][act] = value;
+                    }
+                });
+            }
+
+            function refreshTable() {
+                saveCurrentScores();
+
+                const hdrRow = $('#hdrRow');
+                hdrRow.html('<th>Estudiante</th>');
+
+                const activeTypes = ['tarea', 'parcial', 'examen'];
+
+                activeTypes.forEach(type => {
+                    if (activities[type] && activities[type].length > 0) {
+                    activities[type].forEach(a => {
+                        const downloadButton = a.pdfUrl 
+                            ? `<div><a href='${a.pdfUrl}' target='_blank' class='btn btn-sm btn-outline-primary mb-1' title='Descargar archivo'><i class='bi bi-download'></i></a></div>` 
+                            : '';
+                        hdrRow.append(`<th><div>${downloadButton}${a.name}<br/><small>(${type})</small></div></th>`);
+                    });
+                    hdrRow.append(`<th class='text-primary'>Prom. ${type.charAt(0).toUpperCase() + type.slice(1)}</th>`);
+                    }
+                });
+                hdrRow.append("<th class='text-dark'>Nota Final</th>");
+
+                const body = $('#bodyRows');
+                body.empty();
+
+                students.forEach(s => {
+                    let row = `<tr data-stu-id="${s.id}"><td>${s.fullName}</td>`;
+
+                    activeTypes.forEach(type => {
+                        if (activities[type] && activities[type].length > 0) {
+                        activities[type].forEach(a => {
+                            const savedScore = scores[s.id]?.[type]?.[a.name] || '';
+                            row += `<td contenteditable class="score-cell" data-stu="${s.id}" data-type="${type}" data-act="${a.name}">${savedScore !== '' ? parseFloat(savedScore).toFixed(1) : ''}</td>`;
+                        });
+                        row += `<td class='text-primary avg-${type}'></td>`;
+                        }
+                    });
+
+                    row += `<td class='text-dark fw-bold final-grade'></td></tr>`;
+                    body.append(row);
+                });
+
+                $('.score-cell').off('blur keypress keydown').on({
+                    keypress: function(e) {
+                        if (e.which === 13) {
+                            e.preventDefault();
+                            $(this).blur();
+                            return false;
+                        }
+
+                        const $cell = $(this);
+                        const currentValue = $cell.text();
+                        const selectedText = window.getSelection().toString();
+                        
+                        if (selectedText === currentValue) {
+                            return true;
+                        }
+
+                        if (currentValue.includes('.') && currentValue.split('.')[1].length >= 1) {
+                            return false;
+                        }
+
+                        if (!currentValue.includes('.') && currentValue.length >= 1 && e.which !== 46) {
+                            return false;
+                        }
+
+                        if (e.which !== 46 && (e.which < 48 || e.which > 57)) {
+                            return false;
+                        }
+
+                        if (e.which === 46 && currentValue.includes('.')) {
+                            return false;
+                        }
+
+                        return true;
+                    },
+                    keydown: function(e) {
+                        if (e.which === 13) {
+                            e.preventDefault();
+                            return false;
+                        }
+                        if (e.which === 8 || e.which === 46 || e.which === 37 || e.which === 39) {
+                            return true;
+                        }
+                    },
+                    paste: function(e) {
+                        e.preventDefault();
+                        const pastedText = (e.originalEvent.clipboardData || window.clipboardData).getData('text');
+                        
+                        if (/^[1-5](\.[0-9])?$/.test(pastedText)) {
+                            $(this).text(pastedText);
+                            $(this).blur();
+                        }
+                    },
+                    blur: function() {
+                        const $cell = $(this);
+                        let value = $cell.text().trim();
+
+                        if (!value) {
+                            return;
+                        }
+
+                        if (/^[1-5]$/.test(value)) {
+                            value = value + '.0';
+                        }
+
+                        const validFormat = /^[1-5](\.[0-9])?$/;
+                        if (!validFormat.test(value)) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Formato inválido',
+                                text: 'Por favor ingrese un número entre 1.0 y 5.0 con un decimal'
+                            });
+                            $cell.text('');
+                            return;
+                        }
+
+                        const numValue = parseFloat(value);
+                        if (numValue < 1 || numValue > 5) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Valor fuera de rango',
+                                text: 'La calificación debe estar entre 1.0 y 5.0'
+                            });
+                            $cell.text('');
+                            return;
+                        }
+
+                        const formattedValue = truncateToOneDecimal(numValue);
+                        $cell.text(formattedValue);
+
+                        const student = $cell.data('stu');
+                        const type = $cell.data('type');
+                        const act = $cell.data('act');
+
+                        if (!scores[student]) scores[student] = {};
+                        if (!scores[student][type]) scores[student][type] = {};
+                        scores[student][type][act] = formattedValue;
+
+                        calcAverages();
+                    }
+                });
+
+                $('.score-cell').on('click', function() {
+                    const range = document.createRange();
+                    range.selectNodeContents(this);
+                    const sel = window.getSelection();
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                });
+
+                calcAverages();
+            }
+
+            function calcAverages() {
+                $('#bodyRows tr').each(function () {
+                    const row = $(this);
+                    const studentId = row.data('stu-id');
+                    const activeTypes = ['tarea', 'parcial', 'examen'].filter(type => activities[type] && activities[type].length > 0);
+                    const typeAvgs = {};
+
+                    activeTypes.forEach(type => {
+                        const values = row.find(`.score-cell[data-type='${type}']`)
+                            .map((_, td) => {
+                                const val = parseFloat($(td).text());
+                                return isNaN(val) ? 0 : val;
+                            }).get();
+                        const valid = values.filter(n => n > 0);
+                        const avg = valid.length > 0 ? (valid.reduce((a, b) => a + b, 0) / valid.length) : 0;
+                        const truncAvg = Math.floor(avg * 10) / 10;
+                        typeAvgs[type] = truncAvg;
+                        row.find(`.avg-${type}`).text(truncAvg.toFixed(1));
+                    });
+
+                    let finalGrade = 0;
+                    let activeTypeCount = activeTypes.length;
+
+                    if (activeTypeCount > 0) {
+                        finalGrade = activeTypes.reduce((sum, type) => sum + typeAvgs[type], 0) / activeTypeCount;
+                    }
+
+                    const truncFinalGrade = Math.floor(finalGrade * 10) / 10;
+                    row.find('.final-grade').text(truncFinalGrade.toFixed(1));
+
+                    const trimester = $('#selTrimester').val();
+                    if (!studentAnnualScores[studentId]) studentAnnualScores[studentId] = {};
+                    studentAnnualScores[studentId][trimester] = truncFinalGrade;
+                });
+
+                updateResumenTable();
+            }
+
+            function loadStudents(groupId, gradeLevelId, callback) {
+                $('#hdrRow').html('<th colspan="100%">Cargando estudiantes...</th>');
+                $('#bodyRows').html('<tr><td colspan="100%" class="text-center">Cargando estudiantes...</td></tr>');
+
+                $.get(`/TeacherGradebook/StudentsByGroupAndGrade?groupId=${groupId}&gradeId=${gradeLevelId}`, data => {
+                    students.length = 0;
+                    data.forEach(s => {
+                        students.push({ id: s.studentId, fullName: s.fullName });
+                    });
+                    scores = {};
+                    if (callback) callback();
+                });
+            }
+
+            function loadNotasCargadas(subjectId, groupId, gradeLevelId, trimester) {
+                $('#hdrRow').html('<th colspan="100%">Cargando notas...</th>');
+                $('#bodyRows').html('<tr><td colspan="100%" class="text-center">Cargando notas...</td></tr>');
+
+                $.ajax({
+                    url: '/TeacherGradebook/GetNotasCargadas',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        subjectId,
+                        groupId,
+                        gradeLevelId,
+                        teacherId,
+                        trimester
+                    }),
+                    success: data => {
+                        // Reiniciar las actividades y scores al cambiar de trimestre
+                        activities.tarea = [];
+                        activities.parcial = [];
+                        activities.examen = [];
+                        scores = {};
+
+                        console.log("Notas cargadas para el trimestre:", trimester, data);
+
+                        data.forEach(d => {
+                            if (!scores[d.studentId]) scores[d.studentId] = {};
+                            d.notas.forEach(nota => {
+                                const tipo = nota.tipo.toLowerCase();
+                                if (!activities[tipo]) activities[tipo] = [];
+                                if (!activities[tipo].some(a => a.name === nota.actividad)) {
+                                    activities[tipo].push({ name: nota.actividad, pdfUrl: nota.pdfUrl });
+                                }
+                                if (!scores[d.studentId][tipo]) scores[d.studentId][tipo] = {};
+                                scores[d.studentId][tipo][nota.actividad] = truncateToOneDecimal(nota.nota);
+                            });
+                        });
+                        refreshTable();
+                    }
+                });
+            }
+
+            function loadPromediosFinales() {
+                const combo = $('#selGroup').val();
+                if (!combo) return;
+
+                const [subjectId, groupId, gradeLevelId] = combo.split('|');
+
+                $.ajax({
+                    url: '/TeacherGradebook/GetPromediosFinales',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        subjectId: subjectId,
+                        groupId: groupId,
+                        gradeLevelId: gradeLevelId
+                    }),
+                    success: function(response) {
+                        if (response.success) {
+                            const resumenBody = $('#resumenBody');
+                            resumenBody.empty();
+
+                            response.data.forEach(student => {
+                                const t1 = student.promedios['1T'] || 0.0;
+                                const t2 = student.promedios['2T'] || 0.0;
+                                const t3 = student.promedios['3T'] || 0.0;
+                                
+                                const row = `
+                                    <tr>
+                                        <td>${student.studentFullName}</td>
+                                        <td>${t1.toFixed(1)}</td>
+                                        <td>${t2.toFixed(1)}</td>
+                                        <td>${t3.toFixed(1)}</td>
+                                        <td><strong>${student.promedioFinal.toFixed(1)}</strong></td>
+                                        <td class="${student.estado === 'Aprobado' ? 'text-success' : 'text-danger'} fw-semibold">
+                                            ${student.estado}
+                                        </td>
+                                    </tr>`;
+                                resumenBody.append(row);
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: response.error || 'No se pudieron cargar los promedios finales'
+                            });
+                        }
+                    },
+                    error: function() {
+                            Swal.fire({
+                                icon: 'error',
+                            title: 'Error',
+                            text: 'No se pudieron cargar los promedios finales'
+                        });
+                    }
+                });
+            }
+
+            $('#formNew').off('submit').on('submit', function(e) {
+                e.preventDefault();
+                const name = $('#activityName').val();
+                const type = $('#activityType').val();
+                const file = $('#activityFile')[0].files[0];
+                if (!name || !type) return;
+
+                const combo = $('#selGroup').val();
+                const trimester = $('#selTrimester').val();
+                if (!combo || !trimester) {
+                    Swal.fire({ icon: 'error', title: 'Error', text: 'Debes seleccionar un grupo y trimestre' });
+                    return;
+                }
+
+                const [subjectId, groupId, gradeLevelId] = combo.split('|');
+                const formData = new FormData();
+                formData.append('Name', name);
+                formData.append('Type', type);
+                if (file) {
+                    formData.append('Pdf', file);
+                }
+                formData.append('TrimesterCode', trimester);
+                formData.append('Date', new Date().toISOString());
+                formData.append('TeacherId', '@Model.TeacherId');
+                formData.append('SubjectId', subjectId);
+                formData.append('GroupId', groupId);
+                formData.append('GradeLevelId', gradeLevelId);
+                formData.append('__RequestVerificationToken', $('input[name="__RequestVerificationToken"]').val());
+
+                $.ajax({
+                    url: '/TeacherGradebook/CreateActivity',
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(resp) {
+                        if (resp.success) {
+                            Swal.fire({ icon: 'success', title: 'Actividad agregada', text: 'La actividad se ha agregado correctamente' });
+                            $('#activityName').val('');
+                            $('#activityFile').val('');
+                            loadNotasCargadas(subjectId, groupId, gradeLevelId, trimester);
+                        } else {
+                            Swal.fire({ icon: 'error', title: 'Error', text: resp.error || 'No se pudo agregar la actividad' });
+                        }
+                    },
+                    error: function(xhr) {
+                        Swal.fire({ 
+                            icon: 'error', 
+                            title: 'Error', 
+                            text: xhr.responseJSON?.error || 'No se pudo agregar la actividad' 
+                        });
+                    }
+                });
+            });
+
+            $('#selGroup, #selTrimester').on('change', () => {
+                const combo = $('#selGroup').val();
+                const trimester = $('#selTrimester').val();
+                if (combo && trimester) {
+                    const [subjectId, groupId, gradeLevelId] = combo.split('|');
+                    
+                    // Reiniciar todo al cambiar de grupo o trimestre
+                    activities.tarea = [];
+                    activities.parcial = [];
+                    activities.examen = [];
+                    scores = {};
+                    
+                    loadStudents(groupId, gradeLevelId, () => {
+                        loadNotasCargadas(subjectId, groupId, gradeLevelId, trimester);
+                    });
+                    }
+                });
+
+                const combo = $('#selGroup').val();
+            const trimester = $('#selTrimester').val();
+            if (combo && trimester) {
+                const [subjectId, groupId, gradeLevelId] = combo.split('|');
+                loadStudents(groupId, gradeLevelId, () => {
+                    loadNotasCargadas(subjectId, groupId, gradeLevelId, trimester);
+                });
+            }
+
+            $('#btnGuardarNotas').click(() => {
+                const datos = [];
+                const combo = $('#selGroup').val();
+                let subjectId = null;
+                let groupId = null;
+                let gradeLevelId = null;
+
+                if (combo) {
+                    [subjectId, groupId, gradeLevelId] = combo.split('|');
+                }
+
+                const trimester = $('#selTrimester').val();
+
+                $('#bodyRows tr').each(function () {
+                    const $row = $(this);
+                    const studentId = $row.data('stu-id');
+                    const studentData = {
+                        studentId: studentId,
+                        subjectId: subjectId,
+                        groupId: groupId,
+                        gradeLevelId: gradeLevelId,
+                        teacherId: teacherId,
+                        trimester: trimester,
+                        notas: [],
+                        promedios: {},
+                        notaFinal: null
+                    };
+
+                    $row.find('.score-cell').each(function () {
+                        const $cell = $(this);
+                        const tipo = $cell.data('type');
+                        const actividad = $cell.data('act');
+                        const valor = parseFloat($cell.text());
+
+                        if (!isNaN(valor)) {
+                            studentData.notas.push({
+                                tipo: tipo,
+                                actividad: actividad,
+                                nota: valor.toFixed(2)
+                            });
+                        }
+                    });
+
+                    ['tarea', 'parcial', 'examen'].forEach(tipo => {
+                        const avg = $row.find(`.avg-${tipo}`).text();
+                        if (avg) {
+                            studentData.promedios[tipo] = parseFloat(avg) || 0;
+                        }
+                    });
+
+                    const finalGradeText = $row.find('.final-grade').text();
+                    if (finalGradeText) {
+                        studentData.notaFinal = parseFloat(finalGradeText) || 0;
+                    }
+
+                    datos.push(studentData);
+                });
+
+                if (datos.length === 0) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Sin datos',
+                        text: 'No hay información válida para guardar.'
+                    });
+                    return;
+                }
+
+                $.ajax({
+                    url: '/TeacherGradebook/GuardarNotasTemp',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(datos),
+                    success: () => {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Notas enviadas',
+                            text: 'Las notas se enviaron correctamente.'
+                        });
+                    },
+                    error: () => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'No se pudieron enviar las notas.'
+                        });
+                    }
+                });
+            });
+
+            // Llamar a la función cuando se cambie de grupo o se haga clic en la pestaña
+            $('#selGroup').on('change', loadPromediosFinales);
+            $('#resumen-tab').on('click', loadPromediosFinales);
+        });
+    </script>
+
+    <script>
+        const asistenciaFechas = [];
+        const asistenciaData = {};
+
+        function cargarAsistencias(subjectId, groupId, gradeLevelId, trimester) {
+            $.ajax({
+                url: '/TeacherGradebook/GetAsistencias',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ subjectId, groupId, gradeLevelId, trimester }),
+                success: function (data) {
+                    asistenciaFechas.length = 0;
+                    asistenciaFechas.push(...data.fechas);
+
+                    const header = $('#attendanceHeader');
+                    header.html('<th>Estudiante</th>');
+                    asistenciaFechas.forEach(fecha => {
+                        const formatted = new Date(fecha).toLocaleDateString();
+                        header.append(`<th>${formatted}</th>`);
+                    });
+                    header.append('<th>Estado</th>');
+
+                    const body = $('#attendanceBody');
+                    body.empty();
+
+                    data.students.forEach(s => {
+                        asistenciaData[s.id] = asistenciaData[s.id] || {};
+
+                        let row = `<tr data-student-id="${s.id}"><td>${s.name}</td>`;
+
+                        asistenciaFechas.forEach(fecha => {
+                            const estado = data.registros?.[s.id]?.[fecha] === 1 ? 1 : 0;
+                            asistenciaData[s.id][fecha] = estado;
+
+                            row += `<td contenteditable="true" class="asistencia-cell" data-student-id="${s.id}" data-fecha="${fecha}">${estado}</td>`;
+                        });
+
+                        row += `<td class="estado-final fw-semibold text-center"></td></tr>`;
+                        body.append(row);
+                    });
+
+                    recalcularEstados();
+                    activarEdicion();
+                }
+            });
+        }
+
+        function activarEdicion() {
+            $('.asistencia-cell').off('blur').on('blur', function () {
+                const cell = $(this);
+                const studentId = cell.data('student-id');
+                const fecha = cell.data('fecha');
+                let val = cell.text().trim();
+
+                val = val === '1' ? 1 : 0;
+                cell.text(val);
+                asistenciaData[studentId][fecha] = val;
+
+                recalcularEstados();
+            });
+        }
+
+        function recalcularEstados() {
+            $('#attendanceBody tr').each(function () {
+                const row = $(this);
+                const studentId = row.data('student-id');
+                const registros = asistenciaData[studentId] || {};
+
+                const total = asistenciaFechas.length;
+                const presentes = Object.values(registros).filter(v => v === 1).length;
+                const estado = presentes > total / 2 ? 'Activo' : 'No Asistió';
+
+                row.find('.estado-final')
+                    .text(estado)
+                    .removeClass('text-danger text-success')
+                    .addClass(estado === 'Activo' ? 'text-success' : 'text-danger');
+            });
+        }
+
+        $('#selTrimester, #selGroup, #selSubject').on('change', function () {
+            const subjectId = $('#selSubject').val();
+            const groupId = $('#selGroup').val();
+            const gradeLevelId = $('#selGrade').val();
+            const trimester = $('#selTrimester').val();
+
+            if (subjectId && groupId && gradeLevelId && trimester) {
+                cargarAsistencias(subjectId, groupId, gradeLevelId, trimester);
+            }
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            const today = new Date();
+            const formattedDate = today.toISOString().split('T')[0];
+            $('#fecha').val(formattedDate);
+            
+            $('.action-btn').on('click', function() {
+                const row = $(this).closest('tr');
+                const statusCell = row.find('td:nth-child(3)');
+                const actionButtons = row.find('.action-btn');
+                
+                actionButtons.removeClass('active');
+                
+                $(this).addClass('active');
+                
+                const statusBadge = statusCell.find('.status-badge');
+                const status = $(this).data('status');
+                
+                statusBadge.removeClass('present absent late').addClass(status);
+                
+                if (status === 'present') {
+                    statusBadge.html('<i class="bi bi-check-circle-fill"></i> Presente');
+                } else if (status === 'absent') {
+                    statusBadge.html('<i class="bi bi-x-circle-fill"></i> Ausente');
+                } else if (status === 'late') {
+                    statusBadge.html('<i class="bi bi-exclamation-circle-fill"></i> Tardanza');
+                }
+            });
+            
+            $('#filtroGradoAsistencia').on('change', function() {
+                const selectedGradoId = $(this).val();
+                
+                if (selectedGradoId === '') {
+                    $('#asistenciaBody tr').show();
+                } else {
+                    $('#asistenciaBody tr').each(function() {
+                        const gradoText = $(this).find('td:nth-child(2)').text().trim();
+                        if (gradoText.includes(selectedGradoId)) {
+                            $(this).show();
+                        } else {
+                            $(this).hide();
+                        }
+                    });
+                }
+            });
+            
+            $('#filtroGrado').on('change', function() {
+                const selectedGrado = $(this).val();
+                if (selectedGrado === 'Todos los grados') {
+                    $('tbody tr').show();
+                } else {
+                    $('tbody tr').hide();
+                    $('tbody tr').each(function() {
+                        if ($(this).find('td:nth-child(2)').text() === selectedGrado) {
+                            $(this).show();
+                        }
+                    });
+                }
+            });
+            
+            $('#buscarEstudiante').on('keyup', function() {
+                const searchTerm = $(this).val().toLowerCase();
+                $('#asistenciaBody tr').each(function() {
+                    const studentName = $(this).find('td:first-child').text().toLowerCase();
+                    if (studentName.includes(searchTerm)) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            });
+            
+            $('#fecha').on('change', function() {
+                const selectedDate = new Date($(this).val());
+                const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+                const formattedDate = selectedDate.toLocaleDateString('es-ES', options);
+                $('.info-alert h5').html(`<i class="bi bi-calendar-event me-2"></i>Asistencia para: ${formattedDate}`);
+                
+                $('#asistenciaBody tr').each(function() {
+                    const statusCell = $(this).find('td:nth-child(3)');
+                    const actionButtons = $(this).find('.action-btn');
+                    statusCell.html('<span class="status-badge present"><i class="bi bi-check-circle-fill"></i> Presente</span>');
+                    actionButtons.removeClass('active');
+                    $(this).find('.action-btn.present').addClass('active');
+                });
+            });
+            
+            $('#btnGuardarAsistencia').click(function() {
+                const asistencias = [];
+                const fecha = $('#fecha').val();
+                const combo = $('#selGroup').val();
+                const teacherId = '@Model.TeacherId';
+                let groupId = null;
+                let gradeId = null;
+                if (combo) {
+                    const parts = combo.split('|');
+                    groupId = parts[1];
+                    gradeId = parts[2];
+                }
+
+                let valid = true;
+                let errorMsg = '';
+
+                if (!fecha) {
+                    valid = false;
+                    errorMsg = 'Debe seleccionar una fecha.';
+                }
+                if (!teacherId || !groupId || !gradeId) {
+                    valid = false;
+                    errorMsg = 'Debe seleccionar un grupo y un docente válido.';
+                }
+
+                $('#asistenciaBody tr').each(function() {
+                    const studentId = $(this).data('student-id');
+                    const activeBtn = $(this).find('.action-btn.active');
+                    const status = activeBtn.data('status');
+
+                    if (!studentId || !status) {
+                        valid = false;
+                        errorMsg = 'Todos los estudiantes deben tener un estado de asistencia seleccionado.';
+                    }
+
+                    asistencias.push({
+                        studentId: studentId,
+                        teacherId: teacherId,
+                        groupId: groupId,
+                        gradeId: gradeId,
+                        date: fecha,
+                        status: status
+                    });
+                });
+
+                if (!valid) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: errorMsg || 'Todos los campos son obligatorios.'
+                    });
+                    return;
+                }
+
+                // Enviar al backend
+                $.ajax({
+                    url: '/Attendance/SaveAttendances',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(asistencias),
+                    success: function(response) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Asistencia guardada',
+                            text: response.message || 'Asistencia guardada correctamente.'
+                        });
+                    },
+                    error: function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'No se pudo guardar la asistencia.'
+                        });
+                    }
+                });
+            });
+            
+            $('#btnBuscarHistorial').click(function() {
+                const fechaInicio = $('#fechaInicio').val();
+                const fechaFin = $('#fechaFin').val();
+                const estudiante = $('#estudianteHistorial').val();
+                const combo = $('#selGroup').val();
+                let groupId = null;
+                let gradeId = null;
+                if (combo) {
+                    const parts = combo.split('|');
+                    groupId = parts[1];
+                    gradeId = parts[2];
+                }
+
+                if (!fechaInicio || !fechaFin || !groupId || !gradeId) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Debe seleccionar grupo, grado y un rango de fechas.'
+                    });
+                    return;
+                }
+
+                $('#resultadosHistorial').html('<p>Buscando asistencias del ' + fechaInicio + ' al ' + fechaFin + '...</p>');
+
+                $.ajax({
+                    url: '/Attendance/Historial',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        groupId: groupId,
+                        gradeId: gradeId,
+                        fechaInicio: fechaInicio,
+                        fechaFin: fechaFin,
+                        studentId: estudiante
+                    }),
+                    success: function(data) {
+                        if (!data || data.length === 0) {
+                            $('#resultadosHistorial').html('<p class="text-muted">No se encontraron asistencias para los filtros seleccionados.</p>');
+                            return;
+                        }
+                        let html = `<div class="table-responsive"><table class="table table-bordered table-hover"><thead><tr><th>Estudiante</th><th>Fecha</th><th>Estado</th><th>Grupo</th><th>Grado</th></tr></thead><tbody>`;
+                        data.forEach(a => {
+                            let badge = '';
+                            if (a.estado === 'present') badge = '<span class="badge bg-success">Presente</span>';
+                            else if (a.estado === 'absent') badge = '<span class="badge bg-danger">Ausente</span>';
+                            else if (a.estado === 'late') badge = '<span class="badge bg-warning text-dark">Tardanza</span>';
+                            else badge = a.estado;
+                            html += `<tr><td>${a.estudiante || '-'}</td><td>${a.fecha}</td><td>${badge}</td><td>${a.grupo || '-'}</td><td>${a.grado || '-'}</td></tr>`;
+                        });
+                        html += '</tbody></table></div>';
+                        $('#resultadosHistorial').html(html);
+                    },
+                    error: function(xhr) {
+                        let msg = 'No se pudo consultar el historial.';
+                        if (xhr && xhr.responseText) {
+                            msg += ' ' + xhr.responseText;
+                        }
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: msg
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+
+    <script>
+        $(document).ready(() => {
+            function cargarEstudiantesAsistencia() {
+                const combo = $('#selGroup').val();
+                if (!combo) return;
+
+                const [subjectId, groupId, gradeLevelId] = combo.split('|');
+                
+                $.ajax({
+                    url: '/TeacherGradebook/StudentsByGroupAndGrade',
+                    method: 'GET',
+                    data: {
+                        groupId: groupId,
+                        gradeId: gradeLevelId
+                    },
+                    success: function(students) {
+                        const asistenciaBody = $('#asistenciaBody');
+                        asistenciaBody.empty();
+
+                        // Actualizar el filtro de grados
+                        const gradoSeleccionado = $('#selGroup option:selected').text();
+                        const filtroGrado = $('#filtroGradoAsistencia');
+                        filtroGrado.empty();
+                        filtroGrado.append(`<option value="">Todos los grados</option>`);
+                        filtroGrado.append(`<option value="${gradoSeleccionado}" selected>${gradoSeleccionado}</option>`);
+
+                        students.forEach(student => {
+                            const row = `
+                                <tr data-student-id="${student.studentId}" data-student-name="${student.fullName.toLowerCase()}">
+                                    <td>${student.fullName}</td>
+                                    <td>${gradoSeleccionado}</td>
+                                    <td>
+                                        <span class="status-badge present">
+                                            <i class="bi bi-check-circle-fill"></i> Presente
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button type="button" class="action-btn present active" title="Presente" data-status="present">
+                                            <i class="bi bi-check"></i>
+                                        </button>
+                                        <button type="button" class="action-btn absent" title="Ausente" data-status="absent">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                        <button type="button" class="action-btn late" title="Tardanza" data-status="late">
+                                            <i class="bi bi-exclamation"></i>
+                                        </button>
+                                    </td>
+                                </tr>`;
+                            asistenciaBody.append(row);
+                        });
+
+                        // Reactivar los event listeners de los botones
+                        $('.action-btn').off('click').on('click', function() {
+                            const row = $(this).closest('tr');
+                            const statusCell = row.find('td:nth-child(3)');
+                            const actionButtons = row.find('.action-btn');
+                            
+                            actionButtons.removeClass('active');
+                            $(this).addClass('active');
+                            
+                            const statusBadge = statusCell.find('.status-badge');
+                            const status = $(this).data('status');
+                            
+                            statusBadge.removeClass('present absent late').addClass(status);
+                            
+                            if (status === 'present') {
+                                statusBadge.html('<i class="bi bi-check-circle-fill"></i> Presente');
+                            } else if (status === 'absent') {
+                                statusBadge.html('<i class="bi bi-x-circle-fill"></i> Ausente');
+                            } else if (status === 'late') {
+                                statusBadge.html('<i class="bi bi-exclamation-circle-fill"></i> Tardanza');
+                            }
+                        });
+
+                        // Aplicar filtros actuales
+                        aplicarFiltros();
+                    },
+                    error: function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'No se pudieron cargar los estudiantes'
+                        });
+                    }
+                });
+            }
+
+            function aplicarFiltros() {
+                const gradoSeleccionado = $('#filtroGradoAsistencia').val();
+                const busqueda = $('#buscarEstudiante').val().toLowerCase();
+
+                $('#asistenciaBody tr').each(function() {
+                    const $row = $(this);
+                    const nombreEstudiante = $row.data('student-name');
+                    const gradoEstudiante = $row.find('td:nth-child(2)').text();
+                    
+                    const cumpleFiltroGrado = !gradoSeleccionado || gradoEstudiante === gradoSeleccionado;
+                    const cumpleBusqueda = !busqueda || nombreEstudiante.includes(busqueda);
+
+                    if (cumpleFiltroGrado && cumpleBusqueda) {
+                        $row.show();
+                    } else {
+                        $row.hide();
+                    }
+                });
+            }
+
+            // Event listeners para los filtros
+            $('#filtroGradoAsistencia').on('change', aplicarFiltros);
+            $('#buscarEstudiante').on('keyup', aplicarFiltros);
+
+            // Cargar estudiantes cuando cambie el grupo o el trimestre
+            $('#selGroup, #selTrimester').on('change', function() {
+                cargarEstudiantesAsistencia();
+            });
+
+            // Cargar estudiantes inicialmente si hay un grupo seleccionado
+            if ($('#selGroup').val()) {
+                cargarEstudiantesAsistencia();
+            }
+        });
+    </script>
+
+    <script>
+        $(document).ready(() => {
+            function consultarEstadisticas() {
+                const combo = $('#selGroup').val();
+                const trimestre = $('#trimestreEstadisticas').val();
+                let groupId = null;
+                let gradeId = null;
+                if (combo) {
+                    const parts = combo.split('|');
+                    groupId = parts[1];
+                    gradeId = parts[2];
+                }
+                if (!groupId || !gradeId || !trimestre) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Debe seleccionar grupo, grado y trimestre.'
+                    });
+                    return;
+                }
+                // Obtener fechas del option seleccionado y forzar formato ISO
+                const selected = $('#trimestreEstadisticas option:selected');
+                let fechaInicio = selected.data('inicio');
+                let fechaFin = selected.data('fin');
+                fechaInicio = fechaInicio ? fechaInicio + 'T00:00:00' : null;
+                fechaFin = fechaFin ? fechaFin + 'T23:59:59' : null;
+                // Mostrar en consola para depuración
+                console.log('Datos a enviar:', {
+                    groupId: groupId,
+                    gradeId: gradeId,
+                    trimestre: trimestre,
+                    fechaInicio: fechaInicio,
+                    fechaFin: fechaFin
+                });
+                $.ajax({
+                    url: '/Attendance/Estadisticas',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        groupId: groupId,
+                        gradeId: gradeId,
+                        trimestre: trimestre,
+                        fechaInicio: fechaInicio,
+                        fechaFin: fechaFin
+                    }),
+                    success: function(data) {
+                        // Tarjetas
+                        $('.statistics-card .display-4.text-primary').text(data.porcentajeAsistencia + '%');
+                        $('.statistics-card .display-4.text-danger').text(data.porcentajeAusencias + '%');
+                        $('.statistics-card .display-4.text-warning').text(data.porcentajeTardanzas + '%');
+                        // Tabla por estudiante
+                        let html = '';
+                        data.porEstudiante.forEach(e => {
+                            html += `<tr><td>${e.estudiante}</td><td>${e.presentes}</td><td>${e.ausentes}</td><td>${e.tardanzas}</td><td>${e.porcentajeAsistencia}%</td></tr>`;
+                        });
+                        $('#tablaEstadisticasEstudiantes tbody').html(html);
+                    },
+                    error: function(xhr) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'No se pudieron cargar las estadísticas.'
+                        });
+                    }
+                });
+            }
+
+            // Al hacer click en el botón
+            $('#btnConsultarEstadisticas').on('click', consultarEstadisticas);
+            // También al cambiar de grupo o trimestre principal, recargar el select de trimestre
+            $('#selGroup').on('change', function() {
+                // Opcional: podrías resetear el select de trimestre si lo deseas
+                // $('#trimestreEstadisticas').val($('#trimestreEstadisticas option:first').val());
+            });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            // Al cambiar el grado, grupo y materia, cargar los estudiantes correspondientes
+            $('#filtroGrupoHistorial').on('change', function() {
+                const combo = $(this).val();
+                $('#estudianteHistorial').html('<option value="">Todos los estudiantes</option>');
+                if (!combo) return;
+                const [subjectId, groupId, gradeId] = combo.split('|');
+                $.ajax({
+                    url: '/TeacherGradebook/StudentsByGroupAndGrade',
+                    method: 'GET',
+                    data: { subjectId: subjectId, groupId: groupId, gradeId: gradeId },
+                    success: function(students) {
+                        students.forEach(function(s) {
+                            $('#estudianteHistorial').append(`<option value="${s.studentId}">${s.fullName}</option>`);
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+}
+
+

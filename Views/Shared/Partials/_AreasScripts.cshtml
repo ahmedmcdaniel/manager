@@ -1,0 +1,131 @@
+﻿<script>
+    let areaDataTable;
+
+    $(document).ready(function () {
+        areaDataTable = $('#areaTable').DataTable({
+            language: {
+                search: "Buscar:",
+                lengthMenu: "Mostrar _MENU_ registros",
+                zeroRecords: "No se encontraron áreas",
+                info: "Mostrando _START_ a _END_ de _TOTAL_ áreas",
+                infoEmpty: "Sin áreas disponibles",
+                infoFiltered: "(filtrado de _MAX_ áreas)"
+            }
+        });
+    });
+
+    window.createArea = function () {
+        const name = $('#newAreaName').val().trim();
+        const description = $('#newAreaDescription').val().trim();
+
+        if (!name) {
+            Swal.fire('Advertencia', 'El nombre no puede estar vacío.', 'warning');
+            return;
+        }
+
+        const area = { name, description };
+
+        $.ajax({
+            url: '/Area/Create',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(area)
+        })
+        .done((response) => {
+            Swal.fire('¡Éxito!', 'El área fue creada correctamente.', 'success');
+            $('#newAreaName').val('');
+            $('#newAreaDescription').val('');
+
+            const newRow = `
+                <tr data-id="${response.id}">
+                    <td>
+                        <span class="area-name-text">${response.name}</span>
+                        <input type="text" class="form-control d-none area-name-input" value="${response.name}" />
+                    </td>
+                    <td>
+                        <span class="area-description-text">${response.description || ''}</span>
+                        <textarea class="form-control d-none area-description-input">${response.description || ''}</textarea>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-primary btn-edit-area">Editar</button>
+                        <button class="btn btn-sm btn-success d-none btn-save-area">Guardar</button>
+                        <button class="btn btn-sm btn-danger btn-delete-area">Eliminar</button>
+                    </td>
+                </tr>
+            `;
+
+            const rowNode = $(newRow);
+            areaDataTable.row.add(rowNode).draw();
+        })
+        .fail(() => Swal.fire('Error', 'Error al crear el área.', 'error'));
+    };
+
+    $('#areaTable').on('click', '.btn-edit-area', function () {
+        const row = $(this).closest('tr');
+        row.find('.area-name-text, .area-description-text').addClass('d-none');
+        row.find('.area-name-input, .area-description-input').removeClass('d-none');
+        row.find('.btn-edit-area').addClass('d-none');
+        row.find('.btn-save-area').removeClass('d-none');
+    });
+
+    $('#areaTable').on('click', '.btn-save-area', function () {
+        const row = $(this).closest('tr');
+
+        const area = {
+            Id: row.data('id'),
+            Name: row.find('.area-name-input').val().trim(),
+            Description: row.find('.area-description-input').val().trim()
+        };
+
+        if (!area.Name) {
+            Swal.fire('Advertencia', 'El nombre no puede estar vacío.', 'warning');
+            return;
+        }
+
+        $.ajax({
+            url: '/Area/Edit',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(area)
+        })
+        .done(() => {
+            row.find('.area-name-text').text(area.Name).removeClass('d-none');
+            row.find('.area-description-text').text(area.Description).removeClass('d-none');
+            row.find('.area-name-input, .area-description-input').addClass('d-none');
+            row.find('.btn-edit-area').removeClass('d-none');
+            row.find('.btn-save-area').addClass('d-none');
+            Swal.fire('¡Actualizado!', 'El área fue actualizada correctamente.', 'success');
+        })
+        .fail(() => Swal.fire('Error', 'Error al actualizar el área.', 'error'));
+    });
+
+    $('#areaTable').on('click', '.btn-delete-area', function () {
+        const row = $(this).closest('tr');
+        const id = row.data('id');
+
+        Swal.fire({
+            title: '¿Eliminar esta área?',
+            text: "Esta acción no se puede deshacer.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/Area/Delete',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ id })
+                })
+                .done(() => {
+                    areaDataTable.row(row).remove().draw();
+                    Swal.fire('Eliminado', 'El área fue eliminada correctamente.', 'success');
+                })
+                .fail(() => Swal.fire('Error', 'Error al eliminar el área.', 'error'));
+            }
+        });
+    });
+</script>

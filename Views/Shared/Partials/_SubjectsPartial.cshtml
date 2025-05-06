@@ -1,0 +1,51 @@
+﻿@model IEnumerable<SchoolManager.Models.Subject>
+
+<div class="card card-outline card-primary">
+    <div class="card-header">
+        <h5 class="card-title fw-bold fs-3"><i class="bi bi-book text-primary me-2"></i>Gestión de Materias</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="subjectTable" class="table table-hover table-bordered align-middle">
+                <thead>
+                    <tr>
+                        <th class="text-center">Nombre</th>
+                        <th class="text-center" style="width: 150px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="2" class="text-center text-muted">No hay materias registradas.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var subject in Model)
+                        {
+                            <tr data-id="@subject.Id">
+                                <td class="align-middle text-center">
+                                    <span class="subject-name-text">@subject.Name</span>
+                                    <input type="text" class="form-control d-none subject-name-input" value="@subject.Name" />
+                                </td>
+                                <td class="align-middle text-center">
+                                    <button class="btn btn-sm btn-primary me-1 btn-edit-subject"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-success d-none me-1 btn-save-subject"><i class="bi bi-check"></i></button>
+                                    <button class="btn btn-sm btn-danger btn-delete-subject"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-3">
+            <label>Nueva Materia</label>
+            <input type="text" id="newSubjectName" class="form-control" placeholder="Nombre de nueva materia" />
+            <button class="btn btn-success mt-2" onclick="createSubject()"><i class="bi bi-plus-circle me-1"></i> Agregar Materia</button>
+        </div>
+    </div>
+</div>
+
